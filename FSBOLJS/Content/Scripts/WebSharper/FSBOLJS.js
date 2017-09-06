@@ -679,11 +679,11 @@
  },Identifiers$1,ComponentDefinition$1);
  ComponentDefinition$1.createHigherFunction=function(name,urlPrefix,displayId,version,types,roles,components)
  {
-  var componentList,rangeList,sequenceAnnotations,x;
+  var componentList,rangeList,indexList,sequenceAnnotations,x;
   componentList=List.map(ComponentDefinition$1.createComponent(urlPrefix),components);
   rangeList=ComponentDefinition$1.createRanges(urlPrefix,components);
-  sequenceAnnotations=(x=List.zip3(List.ofSeq(Operators.range(1,components.get_Length())),componentList,rangeList),List.map(ComponentDefinition$1.createSequenceAnnotationFromSingleRange(urlPrefix),x));
-  return new ComponentDefinition$1.New(name,urlPrefix,displayId,version,types,roles,List.ofArray([new Sequence$1.New(name+"_sequence",urlPrefix,displayId+"_sequence",version,ComponentDefinition$1.getConcatenatedSequence(components),Terms.dnasequence())]),componentList,sequenceAnnotations);
+  indexList=List.ofSeq(Operators.range(1,components.get_Length()));
+  return rangeList.$==0?new ComponentDefinition$1.New(name,urlPrefix,displayId,version,types,roles,List.T.Empty,componentList,List.T.Empty):(sequenceAnnotations=(x=List.zip3(indexList,componentList,rangeList),List.map(ComponentDefinition$1.createSequenceAnnotationFromSingleRange(urlPrefix),x)),new ComponentDefinition$1.New(name,urlPrefix,displayId,version,types,roles,List.ofArray([new Sequence$1.New(name+"_sequence",urlPrefix,displayId+"_sequence",version,ComponentDefinition$1.getConcatenatedSequence(components),Terms.dnasequence())]),componentList,sequenceAnnotations));
  };
  ComponentDefinition$1.getConcatenatedSequence=function(cdList)
  {

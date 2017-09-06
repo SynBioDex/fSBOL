@@ -66,9 +66,12 @@ type ComponentDefinition (name:string, urlPrefix:string, displayId:string, versi
         let componentList = components |> List.map createComponentForUrlPrefix
         let rangeList = ComponentDefinition.createRanges urlPrefix components
         let indexList = [1 .. components.Length]
-
-        let forSA = List.zip3 indexList componentList rangeList 
-        let sequenceAnnotationForUrlPrefix = ComponentDefinition.createSequenceAnnotationFromSingleRange urlPrefix
-        let sequenceAnnotations = forSA |> List.map sequenceAnnotationForUrlPrefix
-        let seq = Sequence(name+"_sequence",urlPrefix,displayId+"_sequence",version,ComponentDefinition.getConcatenatedSequence(components),Terms.dnasequence)
-        ComponentDefinition(name,urlPrefix,displayId,version,types,roles,[seq],componentList,sequenceAnnotations)
+        
+        if rangeList.IsEmpty then
+            ComponentDefinition(name,urlPrefix,displayId,version,types,roles,[],componentList,[])
+        else
+            let forSA = List.zip3 indexList componentList rangeList 
+            let sequenceAnnotationForUrlPrefix = ComponentDefinition.createSequenceAnnotationFromSingleRange urlPrefix
+            let sequenceAnnotations = forSA |> List.map sequenceAnnotationForUrlPrefix
+            let seq = Sequence(name+"_sequence",urlPrefix,displayId+"_sequence",version,ComponentDefinition.getConcatenatedSequence(components),Terms.dnasequence)
+            ComponentDefinition(name,urlPrefix,displayId,version,types,roles,[seq],componentList,sequenceAnnotations)
