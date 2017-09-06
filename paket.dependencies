@@ -1,0 +1,13 @@
+framework: net451
+redirects: on
+source https://www.nuget.org/api/v2
+
+nuget FsCheck >= 2.4
+nuget FsUnit.xUnit
+nuget xunit.runner.visualstudio >= 2.1 version_in_path: true
+nuget xunit.runner.console >= 2.1
+nuget FSharp.Collections.ParallelSeq
+nuget FSharp.Core 4.0.0.1
+
+//Zafir is the prerelease version of WebSharper 4.X
+nuget Zafir.FSharp >= 4.0.188.91-beta10
