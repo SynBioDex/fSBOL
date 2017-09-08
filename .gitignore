@@ -157,3 +157,4 @@ App_Data/*.ldf
 #############
 
 !lib/**
+.paket/paket.exe
