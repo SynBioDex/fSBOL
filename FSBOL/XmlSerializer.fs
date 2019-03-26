@@ -130,10 +130,12 @@ let sequenceFromXml (xElem:XmlElement) =
         let encodingElem = encodingList.Item(0)
         let encoding = encodingElem.GetAttribute("resource")
         
+        
+
         let elementsElem = elementsList.Item(0)
         let elements = elementsElem.InnerText
 
-        new Sequence(name,urlPrefix,displayId,version,elements,encoding)
+        new Sequence(name,urlPrefix,displayId,version,elements,Encoding.fromString(encoding))
 
 let serializeComponent (xdoc:XmlDocument) (x:Component) =
         let xmlElement = xdoc.CreateElement(QualifiedName.Component,Terms.sbolns)

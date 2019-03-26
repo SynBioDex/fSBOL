@@ -156,7 +156,7 @@ let serializeStringAnnotations (stringAnnotations:(string*string) list) =
     |> List.map(fun (k,v) -> ({Type = "string";name = k;value = v}))
 
 let serializeSequence (x:Sequence) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     {uri= x.uri;
     name=x.name;
     persistentIdentity=x.persistentIdentity;
@@ -168,7 +168,7 @@ let serializeSequence (x:Sequence) =
     encoding=x.encoding}
 
 let serializeComponent (x:Component) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let comp:jComponent = {uri= x.uri;
                           name=x.name;
                           persistentIdentity=x.persistentIdentity;
@@ -181,7 +181,7 @@ let serializeComponent (x:Component) =
     comp
 
 let serializeRange (x:Range) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let range:jRange = {uri= x.uri;
                         name=x.name;
                         gecDU = "range";
@@ -200,7 +200,7 @@ let serializeLocation (x:Location) =
     | Location.Range(r) -> Range(serializeRange r)
 
 let serializeSequenceAnnotation (x:SequenceAnnotation) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let locs = x.locations |> List.map (fun y -> serializeLocation y) |> Array.ofList
     let sa:jSequenceAnnotation = {uri= x.uri;
                                   name=x.name;
@@ -214,7 +214,7 @@ let serializeSequenceAnnotation (x:SequenceAnnotation) =
     sa
 
 let serializeComponentDefinition (x:ComponentDefinition) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let seqs = x.sequences |> List.map (fun seq -> seq.uri) |> Array.ofList
     let sas = x.sequenceAnnotations |> List.map (fun y -> serializeSequenceAnnotation y) |> Array.ofList
     let comps = x.components |> List.map (fun y -> serializeComponent y) |> Array.ofList
@@ -236,7 +236,7 @@ let serializeComponentDefinition (x:ComponentDefinition) =
     cd
 
 let serializeFunctionalComponent (x:FunctionalComponent) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let fc:jFunctionalComponent = {uri= x.uri;
                                    name=x.name;
                                    persistentIdentity=x.persistentIdentity;
@@ -250,7 +250,7 @@ let serializeFunctionalComponent (x:FunctionalComponent) =
     fc
 
 let serializeParticipation (x:Participation)=
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let roles = x.roles |> Array.ofList
     let participation:jParticipation = {uri= x.uri;
                                         name=x.name;
@@ -264,7 +264,7 @@ let serializeParticipation (x:Participation)=
     participation
 
 let serializeInteraction (x:Interaction) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let types = x.types |> Array.ofList
     let participations = x.participations |> List.map (fun y -> serializeParticipation y) |> Array.ofList
     let interaction:jInteraction = {uri= x.uri;
@@ -279,7 +279,7 @@ let serializeInteraction (x:Interaction) =
     interaction
 
 let serializeModuleDefinition (x:ModuleDefinition) = 
-    let annotations = (serializeUriAnnotations (x.getUriAnnotations())@ serializeStringAnnotations (x.getStringAnnotations())) |> Array.ofList
+    let annotations = (serializeUriAnnotations (x.getUriAnnotations)@ serializeStringAnnotations (x.getStringAnnotations)) |> Array.ofList
     let fc = x.functionalComponents |> List.map (fun y -> serializeFunctionalComponent y) |> Array.ofList
     let interactions = x.interactions |> List.map (fun y -> serializeInteraction y) |> Array.ofList
     let md:jModuleDefinition = {uri= x.uri;

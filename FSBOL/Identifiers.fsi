@@ -6,9 +6,7 @@ open System.Collections.Generic
 
 [<AbstractClass>]
 type Identifiers = 
-    
-    class
-        
+         
         new: name:string * urlPrefix:string * displayId:string * version:string   -> Identifiers
 
         (* Version of the object*)
@@ -41,9 +39,6 @@ type Identifiers =
 
         member getStringAnnotation: string -> string option
 
-        member getUriAnnotations:unit -> (string*string) list
+        member getUriAnnotations:(string*string) list
 
-        member getStringAnnotations:unit -> (string*string) list
-        
-
-    end
+        member getStringAnnotations:(string*string) list

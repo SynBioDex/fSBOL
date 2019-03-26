@@ -8,7 +8,6 @@ open FSBOL.Sequence
 open System.Xml
 
 type ComponentDefinition = 
-    class
     inherit Identifiers
 
     new : name:string * urlPrefix:string * displayId:string * version:string * types:List<string> * roles:List<string> * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:List<SequenceAnnotation>  -> ComponentDefinition
@@ -24,5 +23,3 @@ type ComponentDefinition =
     member types:List<string>
 
     member roles:List<string>
-
-    end

@@ -7,27 +7,23 @@ open System.Collections.Generic
 [<AbstractClass>]
 type Identifiers(name:string, urlPrefix:string, displayId:string, version:string) = 
 
-    let _persistentIdentity = urlPrefix + "/" + displayId 
-    let _uri = _persistentIdentity + "/" + version
-    
     (* Version of the object*)
-    member val version = version
+    member i.version = version
     
-
     (* Name *)
-    member val name = name
+    member i.name = name
 
-    (* Human readable id of the obejct *)
-    member val displayId = displayId
+    (* Human readable id of the object*)
+    member i.displayId = displayId
 
     (* Indentity shared by multiple versions of the same object *)
-    member val persistentIdentity =_persistentIdentity
+    member i.persistentIdentity = urlPrefix + "/" + displayId
 
     (* Unique URI that identifies the object*)
-    member val uri = _uri
+    member i.uri = i.persistentIdentity + "/" + version
 
-    member val description = "" with get,set
-
+    member  val description = "" with get,set
+      
     member private x.uriAnnotations = new Dictionary<string,string>()
 
     member private x.stringAnnotations = new Dictionary<string,string>()
@@ -50,9 +46,9 @@ type Identifiers(name:string, urlPrefix:string, displayId:string, version:string
         else 
             None
 
-    member x.getUriAnnotations() = 
+    member x.getUriAnnotations = 
         x.uriAnnotations |> List.ofSeq |> List.map(fun y -> (y.Key,y.Value))
     
-    member x.getStringAnnotations() = 
+    member x.getStringAnnotations = 
         x.stringAnnotations |> List.ofSeq |> List.map(fun y -> (y.Key,y.Value))
 

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.271
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSBOLTests", "FSBOLTests\FSBOLTests.fsproj", "{ADCD6321-9780-4C8D-B112-39973629765A}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSBOL", "FSBOL\FSBOL.fsproj", "{D3E2946B-5290-4CA5-810C-DFBC423B731B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ADCD6321-9780-4C8D-B112-39973629765A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADCD6321-9780-4C8D-B112-39973629765A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADCD6321-9780-4C8D-B112-39973629765A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADCD6321-9780-4C8D-B112-39973629765A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E2946B-5290-4CA5-810C-DFBC423B731B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E2946B-5290-4CA5-810C-DFBC423B731B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E2946B-5290-4CA5-810C-DFBC423B731B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E2946B-5290-4CA5-810C-DFBC423B731B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E556AB0C-893C-40AB-94D1-5196AC38F2E0}
+	EndGlobalSection
+EndGlobal
