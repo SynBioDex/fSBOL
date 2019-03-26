@@ -1,50 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>bea2fced-63e6-404b-8a4e-33b03d05b49c</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <WebSharperProject>Library</WebSharperProject>
-    <WebSharperBundleOutputDir>Content</WebSharperBundleOutputDir>
-    <WebSharperDeadCodeElimination>False</WebSharperDeadCodeElimination>
-    <RootNamespace>FSBOLJS</RootNamespace>
-    <AssemblyName>FSBOLJS</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>FSBOLJS</Name>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;JavaScript</DefineConstants>
-    <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;JavaScript</DefineConstants>
-    <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).XML</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets')">
-    <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
-  </PropertyGroup>
-  <Import Project="$(FSharpTargetsPath)" />
-  <Import Project="..\.paket\paket.targets" />
-  <ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;JavaScript</DefineConstants>
+  </PropertyGroup>  
+  <ItemGroup> 
     <Compile Include="..\FSBOL\websharperstubs.fs">
       <Link>websharperstubs.fs</Link>
     </Compile>
@@ -138,85 +104,40 @@
     <Compile Include="..\FSBOL\AssemblyInfo.fs">
       <Link>AssemblyInfo.fs</Link>
     </Compile>
-    <Content Include="packages.config" />
+    <Content Include="app.config" />
     <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.ValueTuple">
-      <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="WebSharper.Collections">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Collections.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5.1'">
-      <ItemGroup>
-        <Reference Include="FSharp.Core">
-          <HintPath>..\packages\FSharp.Core\lib\net40\FSharp.Core.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5.1'">
-      <ItemGroup>
-        <Reference Include="WebSharper.Collections">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Collections.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.Control">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Control.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.Core">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Core.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.Core.JavaScript">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Core.JavaScript.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.InterfaceGenerator">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.InterfaceGenerator.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.JQuery">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.JQuery.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.JavaScript">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.JavaScript.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.Main">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Main.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.Sitelets">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Sitelets.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="WebSharper.Web">
-          <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Web.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Import Project="..\packages\WebSharper.FSharp\build\WebSharper.FSharp.targets" Condition="Exists('..\packages\WebSharper.FSharp\build\WebSharper.FSharp.targets')" Label="Paket" />
+    <Reference Include="WebSharper.Control">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Control.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.Core">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.Core.JavaScript">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Core.JavaScript.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.InterfaceGenerator">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.InterfaceGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.JQuery">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.JQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.JavaScript">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.JavaScript.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.Main">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Main.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.Sitelets">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Sitelets.dll</HintPath>
+    </Reference>
+    <Reference Include="WebSharper.Web">
+      <HintPath>..\packages\WebSharper\lib\netstandard2.0\WebSharper.Web.dll</HintPath>
+    </Reference>
+  </ItemGroup>  
+  <Import Project="..\.paket\Paket.Restore.targets"/>
 </Project>

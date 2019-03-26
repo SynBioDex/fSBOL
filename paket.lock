@@ -1,28 +1,14 @@
 REDIRECTS: ON
-RESTRICTION: == net451
+RESTRICTION: == net472
 NUGET
-  remote: https://www.nuget.org/api/v2
-    FsCheck (2.8.2)
-      FSharp.Core (>= 3.1.2.5)
-    FSharp.Collections.ParallelSeq (1.0.2)
+  remote: https://api.nuget.org/v3/index.json
+    FsCheck (2.12.1)
+      FSharp.Core (>= 4.0.0.1)
+    FSharp.Collections.ParallelSeq (1.1.2)
+      FSharp.Core (>= 4.0.0.1)
+      System.ValueTuple (>= 4.3.1)
     FSharp.Core (4.0.0.1)
-    FsUnit.xUnit (3.0)
-      FSharp.Core (>= 3.1.2.5)
-      xunit (2.1)
-    WebSharper (4.0.189.96-rc)
-    WebSharper.FSharp (4.0.189.96-rc)
-      WebSharper (4.0.189.96-rc)
-    xunit (2.1)
-      xunit.assert (2.1)
-      xunit.core (2.1)
-    xunit.abstractions (2.0)
-    xunit.assert (2.1)
-    xunit.core (2.1)
-      xunit.extensibility.core (2.1)
-      xunit.extensibility.execution (2.1)
-    xunit.extensibility.core (2.1)
-      xunit.abstractions (2.0)
-    xunit.extensibility.execution (2.1)
-      xunit.extensibility.core (2.1)
-    xunit.runner.console (2.2)
-    xunit.runner.visualstudio (2.2.0) - version_in_path: true
+    System.ValueTuple (4.5)
+    WebSharper (4.5.7.322)
+    WebSharper.FSharp (4.5.7.322)
+      WebSharper (4.5.7.322)

@@ -1,7 +1,3 @@
 ﻿FsCheck
-FsUnit.xUnit
-xunit.core
-xunit.runner.console
-xunit.runner.visualstudio
 FSharp.Collections.ParallelSeq
 FSharp.Core
