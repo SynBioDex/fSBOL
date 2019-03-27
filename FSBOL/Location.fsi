@@ -1,8 +1,17 @@
 ﻿[<JavaScript>]
 module FSBOL.Location
 
-open FSBOL.Range
+open FSBOL.Identifiers
 
-type Location = Range of Range
+type Orientation = 
+    | Inline
+    | ReverseComplement
+    | OtherOrientation of string
+    static member toURI:Orientation -> string
+    static member fromURI:string -> Orientation
 
+type Location = 
+    inherit Identifiers
+    new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * orientation:Orientation -> Location
 
+    member orientation:Orientation

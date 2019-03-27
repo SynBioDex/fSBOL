@@ -7,8 +7,13 @@ open FSBOL.Component
 type SequenceAnnotation = 
     inherit Identifiers
 
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * componentObject:Component * locations:List<Location> -> SequenceAnnotation
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * componentObj:Component * locations:List<Location> * roles:string list-> SequenceAnnotation
 
-    member locations:List<Location>
+    (* *)
+    member locations:Location list
 
-    member componentObject:Component
+    (* *)
+    member roles:string list
+    
+    (* *)
+    member componentObj:Component

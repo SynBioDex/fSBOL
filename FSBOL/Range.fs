@@ -1,17 +1,15 @@
 ﻿[<JavaScript>]
 module FSBOL.Range
-open FSBOL.Identifiers
-open FSBOL.QualifiedName
-open FSBOL.Terms
 
-type Range(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, startIndex:int, endIndex:int, orientation:string) = 
+open FSBOL.Location
+
+
+type Range(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, orientation:Orientation, startIndex:int, endIndex:int) = 
     
-    inherit Identifiers(uri, name, displayId, version, persistantId)
+    inherit Location(uri, name, displayId, version, persistantId,orientation)
 
     member x.startIndex = startIndex
 
     member x.endIndex = endIndex
-
-    member x.orientation = orientation
 
 

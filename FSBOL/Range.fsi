@@ -1,16 +1,13 @@
 ﻿[<JavaScript>]
 module FSBOL.Range
-open FSBOL.Identifiers
+open FSBOL.Location
 
 type Range =
-    inherit Identifiers
+    inherit Location
 
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * startIndex:int * endIndex:int * orientation:string -> Range
+    new : uri:string * name:string option * displayId:string option * version:string option  * persistantId:string option * orientation:Orientation * startIndex:int * endIndex:int -> Range
 
     member startIndex:int
 
     member endIndex:int
-
-    member orientation:string
-
     

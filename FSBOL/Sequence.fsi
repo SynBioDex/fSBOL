@@ -3,11 +3,10 @@ module FSBOL.Sequence
 open FSBOL.Identifiers
 
 type Encoding = 
-   | DNA
-   | RNA
-   | PROTEIN
+   | IUPACDNA
+   | IUPACPROTEIN
    | SMALLMOLECULE
-   | Other of string
+   | OtherEncoding of string
    static member fromString: string -> Encoding
 
 type Sequence = 

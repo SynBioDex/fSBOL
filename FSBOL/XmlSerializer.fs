@@ -19,6 +19,7 @@ open System.Xml
 open System.IO
 open System.Text
 
+(*
 let idFromXml (xElem:XmlElement) = 
         let idval = xElem.GetAttribute("about")
         //let displayIdXmlList = xElem.ChildNodes..GetElementsByTagName(QualifiedName.displayId)
@@ -931,3 +932,4 @@ let sbolXmlString (x:SBOLDocument) =
     (serializeSBOLDocument x).WriteTo(xw)
     xw.Close()
     sw.ToString()
+    *)

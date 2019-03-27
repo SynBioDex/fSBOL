@@ -1,14 +1,21 @@
 ﻿[<JavaScript>]
 module FSBOL.Component
-open FSBOL.Identifiers
+open FSBOL.ComponentInstance
+open FSBOL.MapsTo
+
+type RoleIntegration = 
+    | OverrideRoles
+    | MergeRoles 
+    | OtherRoleIntegration of string
+    static member toURI:RoleIntegration -> string
+    static member fromURI:string -> RoleIntegration
 
 type Component = 
-    inherit Identifiers
+    inherit ComponentInstance
     
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * access:string * definition:string -> Component
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * definition:string * access:string * mapsTos:MapsTo list *  roles:string list * roleIntegrations: RoleIntegration list -> Component
 
-    member access:string
+    member roles:List<string>
 
-    member definition:string
-
+    member roleIntegrations:List<RoleIntegration>
     
