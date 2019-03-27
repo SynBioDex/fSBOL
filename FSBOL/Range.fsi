@@ -5,7 +5,7 @@ open FSBOL.Identifiers
 type Range =
     inherit Identifiers
 
-    new : name:string * urlPrefix:string * displayId:string * version:string * startIndex:int * endIndex:int * orientation:string -> Range
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * startIndex:int * endIndex:int * orientation:string -> Range
 
     member startIndex:int
 

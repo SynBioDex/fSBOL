@@ -11,8 +11,8 @@ open System.IO
 open System.Text
 open System.Xml
 
-type ComponentDefinition (name:string, urlPrefix:string, displayId:string, version:string, types:List<string>, roles:List<string>, sequences:List<Sequence>, components:List<Component>, sequenceAnnotations:List<SequenceAnnotation>) = 
-    inherit Identifiers(name,urlPrefix,displayId,version)
+type ComponentDefinition (uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, types:List<string>, roles:List<string>, sequences:List<Sequence>, components:List<Component>, sequenceAnnotations:List<SequenceAnnotation>) = 
+    inherit Identifiers(uri, name, displayId, version, persistantId)
 
     
             

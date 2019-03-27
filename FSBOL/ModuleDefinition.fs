@@ -5,8 +5,8 @@ open FSBOL.Identifiers
 open FSBOL.FunctionalComponent
 open FSBOL.Interaction
 
-type ModuleDefinition(name:string, urlPrefix:string, displayId:string, version:string, functionalComponents:List<FunctionalComponent>, interactions:List<Interaction>) =
-    inherit Identifiers(name,urlPrefix,displayId,version)
+type ModuleDefinition(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, functionalComponents:List<FunctionalComponent>, interactions:List<Interaction>) =
+    inherit Identifiers(uri, name, displayId, version, persistantId)
 
     member x.functionalComponents = functionalComponents
 

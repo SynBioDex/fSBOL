@@ -1,44 +1,45 @@
 ﻿[<JavaScript>]
 
-module FSBOL.Identifiers
 (* Basic Indentifiers in SBOL*)
+module FSBOL.Identifiers
+
 open System.Collections.Generic
 
 [<AbstractClass>]
 type Identifiers = 
          
-        new: name:string * urlPrefix:string * displayId:string * version:string   -> Identifiers
-
-        (* Version of the object*)
-        member version:string 
-        
-        (* Name *)
-        member name:string 
-
-        (* Human readable id of the obejct *)
-        member displayId:string 
-
-        (* Unique URI that identifies the object*)
-        member uri:string
-
-        (* Indentity shared by multiple versions of the same object *)
-        member persistentIdentity:string 
-
-        (* Description *)
-        member description:string with get,set
-
-        member private uriAnnotations:Dictionary<string,string>
-
-        member private stringAnnotations:Dictionary<string,string>
-
-        member addUriAnnotation: string * string -> unit
-
-        member addStringAnnotation: string * string  -> unit
-
-        member getUriAnnotation: string -> string option
-
-        member getStringAnnotation: string -> string option
-
-        member getUriAnnotations:(string*string) list
-
-        member getStringAnnotations:(string*string) list
+    new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option -> Identifiers
+    
+    (* Unique URI that identifies the object*)
+    member uri:string
+    
+    (* Version of the object*)
+    member version:string option
+    
+    (* Name *)
+    member name:string option
+    
+    (* Human readable id of the obejct *)
+    member displayId:string option
+    
+    (* Indentity shared by multiple versions of the same object *)
+    member persistentIdentity:string option 
+    
+    (* Description *)
+    member description:string option with get,set
+    
+    member private uriAnnotations:Dictionary<string,string>
+    
+    member private stringAnnotations:Dictionary<string,string>
+    
+    member addUriAnnotation: string * string -> unit
+    
+    member addStringAnnotation: string * string  -> unit
+    
+    member getUriAnnotation: string -> string option
+    
+    member getStringAnnotation: string -> string option
+    
+    member getUriAnnotations:(string*string) list
+    
+    member getStringAnnotations:(string*string) list

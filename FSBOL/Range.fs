@@ -4,9 +4,9 @@ open FSBOL.Identifiers
 open FSBOL.QualifiedName
 open FSBOL.Terms
 
-type Range(name:string, urlPrefix:string, displayId:string, version:string, startIndex:int, endIndex:int, orientation:string) = 
+type Range(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, startIndex:int, endIndex:int, orientation:string) = 
     
-    inherit Identifiers(name,urlPrefix,displayId,version)
+    inherit Identifiers(uri, name, displayId, version, persistantId)
 
     member x.startIndex = startIndex
 

@@ -11,15 +11,12 @@ type Encoding =
    static member fromString: string -> Encoding
 
 type Sequence = 
-    class
     inherit Identifiers
 
-    new : name:string * urlPrefix:string * displayId:string * version:string * sequence:string * encoding:Encoding -> Sequence
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * sequence:string * encoding:Encoding -> Sequence
 
     (**)
     member elements:string
 
     (**) 
     member encoding:string
-
-    end

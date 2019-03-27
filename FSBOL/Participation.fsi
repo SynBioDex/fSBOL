@@ -7,7 +7,7 @@ open FSBOL.FunctionalComponent
 type Participation = 
     inherit Identifiers
 
-    new : name:string * urlPrefix:string * displayId:string * version:string * roles:List<string> * participant:FunctionalComponent -> Participation
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * roles:List<string> * participant:FunctionalComponent -> Participation
 
     member roles:List<string>
 

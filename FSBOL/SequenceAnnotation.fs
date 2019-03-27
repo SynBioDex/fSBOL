@@ -7,9 +7,9 @@ open FSBOL.Range
 open FSBOL.Component
 
 
-type SequenceAnnotation(name:string, urlPrefix:string, displayId:string, version:string, componentObject:Component, locations:List<Location>) = 
+type SequenceAnnotation(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, componentObject:Component, locations:List<Location>) = 
     
-    inherit Identifiers(name,urlPrefix,displayId,version)
+    inherit Identifiers(uri, name, displayId, version, persistantId)
 
     member x.componentObject = componentObject
 

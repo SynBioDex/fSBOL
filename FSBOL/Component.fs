@@ -3,9 +3,9 @@ module FSBOL.Component
 
 open FSBOL.Identifiers
 
-type Component(name:string, urlPrefix:string, displayId:string, version:string, access:string, definition:string) = 
+type Component(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, access:string, definition:string) = 
     
-    inherit Identifiers(name,urlPrefix,displayId,version)
+    inherit Identifiers(uri, name, displayId, version, persistantId)
 
     member x.access = access
 

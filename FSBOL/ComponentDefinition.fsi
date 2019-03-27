@@ -10,7 +10,7 @@ open System.Xml
 type ComponentDefinition = 
     inherit Identifiers
 
-    new : name:string * urlPrefix:string * displayId:string * version:string * types:List<string> * roles:List<string> * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:List<SequenceAnnotation>  -> ComponentDefinition
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * types:List<string> * roles:List<string> * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:List<SequenceAnnotation>  -> ComponentDefinition
 
     static member createHigherFunction: name:string * urlPrefix:string * displayId:string * version:string  * types:List<string> * roles:List<string> * components:List<ComponentDefinition> -> ComponentDefinition
 

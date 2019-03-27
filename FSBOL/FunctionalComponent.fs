@@ -3,8 +3,8 @@ module FSBOL.FunctionalComponent
 
 open FSBOL.Identifiers
 
-type FunctionalComponent(name:string, urlPrefix:string, displayId:string, version:string, access:string,direction:string, definition:string) = 
-    inherit Identifiers(name,urlPrefix,displayId,version)
+type FunctionalComponent(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, access:string,direction:string, definition:string) = 
+    inherit Identifiers(uri, name, displayId, version, persistantId)
 
     member x.access = access
 

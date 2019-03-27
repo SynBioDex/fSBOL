@@ -8,7 +8,7 @@ open FSBOL.FunctionalComponent
 type Interaction = 
     inherit Identifiers
 
-    new : name:string * urlPrefix:string * displayId:string * version:string * types:List<string> * participations:List<Participation> -> Interaction
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * types:List<string> * participations:List<Participation> -> Interaction
 
     member types:List<string> 
 

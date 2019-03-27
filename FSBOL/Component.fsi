@@ -5,7 +5,7 @@ open FSBOL.Identifiers
 type Component = 
     inherit Identifiers
     
-    new : name:string * urlPrefix:string * displayId:string * version:string * access:string * definition:string -> Component
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * access:string * definition:string -> Component
 
     member access:string
 
