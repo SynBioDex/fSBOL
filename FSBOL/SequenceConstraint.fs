@@ -1,5 +1,5 @@
-﻿module FSBOL.SequenceConstraint
-
+﻿[<JavaScript>]
+module FSBOL.SequenceConstraint
 open FSBOL.Identifiers
 open FSBOL.Component
 

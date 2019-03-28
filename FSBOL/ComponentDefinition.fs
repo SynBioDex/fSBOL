@@ -1,16 +1,15 @@
 ﻿[<JavaScript>]
 module FSBOL.ComponentDefinition
-
-open FSBOL.Identifiers
+open FSBOL.TopLevel
 open FSBOL.Component
 open FSBOL.SequenceAnnotation
 open FSBOL.SequenceConstraint
 open FSBOL.Sequence
 open FSBOL.Role
-open FSBOL.Type
+open FSBOL.ComponentDefinitionType
 
-type ComponentDefinition (uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, types:Type list, roles:Role list, sequences:Sequence list, components:Component list, sequenceAnnotations:SequenceAnnotation list, sequenceConstraints:SequenceConstraint list) = 
-    inherit Identifiers(uri, name, displayId, version, persistantId)
+type ComponentDefinition (uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, attachments:string list,types:ComponentDefinitionType list, roles:Role list, sequences:Sequence list, components:Component list, sequenceAnnotations:SequenceAnnotation list, sequenceConstraints:SequenceConstraint list) = 
+    inherit TopLevel(uri, name, displayId, version, persistantId,attachments)
 
     
    
@@ -38,7 +37,7 @@ type ComponentDefinition (uri:string, name:string option, displayId:string optio
 
 
     static member createHigherFunction(name:string,  urlPrefix:string, displayId:string,version:string, (types:string list), (roles: string list), components:ComponentDefinition list) =
-        new ComponentDefinition("",None,None,None,None,[],[],[],[],[],[])
+        new ComponentDefinition("",None,None,None,None,[],[],[],[],[],[],[])
         (*let createComponentForUrlPrefix = ComponentDefinition.createComponent urlPrefix
         let componentList = components |> List.map createComponentForUrlPrefix
         let rangeList = ComponentDefinition.createRanges urlPrefix components

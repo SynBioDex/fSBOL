@@ -1,6 +1,5 @@
 ﻿[<JavaScript>]
 module FSBOL.Component
-
 open FSBOL.ComponentInstance
 open FSBOL.MapsTo
 open FSBOL.Role

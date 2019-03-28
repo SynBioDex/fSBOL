@@ -1,9 +1,7 @@
 ﻿[<JavaScript>]
-module FSBOL.Type
+module FSBOL.ComponentDefinitionType
 
-open FSBOL
-
-type Type = 
+type ComponentDefinitionType = 
     | DNA
     | RNA
     | Protein
@@ -26,7 +24,7 @@ type Type =
         | "http://identifiers.org/so/SO:0000984" -> SingleStranded 
         | "http://identifiers.org/so/SO:0000985" -> DoubleStranded
         | _ -> OtherType(str)
-    static member toURI (t:Type) = 
+    static member toURI (t:ComponentDefinitionType) = 
         match t with 
         | DNA -> "http://www.biopax.org/release/biopax-level3.owl#DnaRegion"
         | RNA -> "http://www.biopax.org/release/biopax-level3.owl#RnaRegion"

@@ -1,17 +1,17 @@
 ﻿[<JavaScript>]
 module FSBOL.ComponentDefinition
-open FSBOL.Identifiers
+open FSBOL.TopLevel
 open FSBOL.Component
 open FSBOL.SequenceAnnotation
 open FSBOL.SequenceConstraint
 open FSBOL.Sequence
 open FSBOL.Role
-open FSBOL.Type
+open FSBOL.ComponentDefinitionType
 
 type ComponentDefinition = 
-    inherit Identifiers
+    inherit TopLevel
 
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * types:Type list * roles:Role list * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:SequenceAnnotation list *  sequenceConstraints:SequenceConstraint list  -> ComponentDefinition
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * attachments:string list* types:ComponentDefinitionType list * roles:Role list * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:SequenceAnnotation list *  sequenceConstraints:SequenceConstraint list  -> ComponentDefinition
 
     static member createHigherFunction: name:string * urlPrefix:string * displayId:string * version:string  * types:List<string> * roles:List<string> * components:List<ComponentDefinition> -> ComponentDefinition
 
@@ -23,6 +23,6 @@ type ComponentDefinition =
 
     member sequences:Sequence list 
 
-    member types:Type list
+    member types:ComponentDefinitionType list
 
     member roles:Role list

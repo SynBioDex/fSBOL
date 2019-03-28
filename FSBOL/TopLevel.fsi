@@ -1,14 +1,10 @@
 ﻿[<JavaScript>]
 module FSBOL.TopLevel
+open FSBOL.Identifiers
 
-open FSBOL.ModuleDefinition
-open FSBOL.ComponentDefinition
-open FSBOL.Sequence
-open FSBOL.Model
-
+[<AbstractClass>]
 type TopLevel = 
-    | ModuleDefinition of ModuleDefinition
-    | ComponentDefinition of ComponentDefinition
-    | Sequence of Sequence
-    | Model of Model
-
+    inherit Identifiers
+    new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * attachments:string list -> TopLevel
+    
+    member attachments:string list

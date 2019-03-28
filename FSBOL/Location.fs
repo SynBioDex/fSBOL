@@ -1,6 +1,5 @@
 ﻿[<JavaScript>]
 module FSBOL.Location
-
 open FSBOL.Identifiers
 
 

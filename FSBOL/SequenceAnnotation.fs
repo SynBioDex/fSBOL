@@ -1,6 +1,5 @@
 ﻿[<JavaScript>]
 module FSBOL.SequenceAnnotation
-
 open FSBOL.Identifiers
 open FSBOL.Location
 open FSBOL.Role

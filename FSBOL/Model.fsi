@@ -1,6 +1,6 @@
 ﻿[<JavaScript>]
 module FSBOL.Model
-open FSBOL.Identifiers
+open FSBOL.TopLevel
 
 type Language =
     | SBML
@@ -19,9 +19,9 @@ type Framework =
 
 
 type Model =
-    inherit Identifiers
+    inherit TopLevel
     
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * source:string * language:Language * framework:Framework -> Model
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * attachments:string list * source:string * language:Language * framework:Framework -> Model
 
     member source:string
     

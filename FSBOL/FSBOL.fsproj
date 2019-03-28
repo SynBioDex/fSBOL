@@ -8,11 +8,17 @@
   <ItemGroup>
     <Compile Include="websharperstubs.fs" />
     <Compile Include="Terms.fs" />
-    <Compile Include="Type.fs" />
+    <Compile Include="ComponentDefinitionType.fs" />
     <Compile Include="Role.fs" />
     <Compile Include="QualifiedName.fs" />
     <Compile Include="Identifiers.fsi" />
     <Compile Include="Identifiers.fs" />
+    <Compile Include="TopLevel.fsi" />
+    <Compile Include="TopLevel.fs" />
+    <Compile Include="Attachment.fsi" />
+    <Compile Include="Attachment.fs" />
+    <Compile Include="Collection.fsi" />
+    <Compile Include="Collection.fs" />
     <Compile Include="Sequence.fsi" />
     <Compile Include="Sequence.fs" />
     <Compile Include="MapsTo.fsi" />
@@ -35,8 +41,14 @@
     <Compile Include="SequenceConstraint.fs" />
     <Compile Include="ComponentDefinition.fsi" />
     <Compile Include="ComponentDefinition.fs" />
+    <Compile Include="VariableComponent.fsi" />
+    <Compile Include="VariableComponent.fs" />
+    <Compile Include="CombinatorialDerivation.fsi" />
+    <Compile Include="CombinatorialDerivation.fs" />
     <Compile Include="Model.fsi" />
     <Compile Include="Model.fs" />
+    <Compile Include="Module.fsi" />
+    <Compile Include="Module.fs" />
     <Compile Include="FunctionalComponent.fsi" />
     <Compile Include="FunctionalComponent.fs" />
     <Compile Include="Participation.fsi" />
@@ -45,8 +57,8 @@
     <Compile Include="Interaction.fs" />
     <Compile Include="ModuleDefinition.fsi" />
     <Compile Include="ModuleDefinition.fs" />
-    <Compile Include="TopLevel.fsi" />
-    <Compile Include="TopLevel.fs" />
+    <Compile Include="Implementation.fsi" />
+    <Compile Include="Implementation.fs" />
     <Compile Include="SBOLDocument.fsi" />
     <Compile Include="SBOLDocument.fs" />
     <Compile Include="XmlSerializer.fs" />

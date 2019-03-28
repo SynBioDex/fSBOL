@@ -1,6 +1,5 @@
 ﻿[<JavaScript>]
 module FSBOL.Range
-
 open FSBOL.Location
 
 

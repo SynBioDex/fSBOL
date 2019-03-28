@@ -1,6 +1,5 @@
 ﻿[<JavaScript>]
 module FSBOL.MapsTo
-
 open FSBOL.Identifiers
 
 

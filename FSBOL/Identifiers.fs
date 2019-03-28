@@ -1,7 +1,5 @@
 ﻿[<JavaScript>]
 module FSBOL.Identifiers
-
-
 open System.Collections.Generic
 
 [<AbstractClass>]

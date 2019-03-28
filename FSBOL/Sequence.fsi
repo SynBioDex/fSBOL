@@ -1,6 +1,6 @@
 ﻿[<JavaScript>]
 module FSBOL.Sequence
-open FSBOL.Identifiers
+open FSBOL.TopLevel
 
 type Encoding = 
    | IUPACDNA
@@ -11,9 +11,9 @@ type Encoding =
    static member toURI:Encoding -> string
 
 type Sequence = 
-    inherit Identifiers
+    inherit TopLevel
 
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * sequence:string * encoding:Encoding -> Sequence
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * attachments:string list * sequence:string * encoding:Encoding -> Sequence
 
     (**)
     member elements:string

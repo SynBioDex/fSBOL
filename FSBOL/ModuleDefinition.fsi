@@ -1,13 +1,22 @@
 ﻿[<JavaScript>]
 module FSBOL.ModuleDefinition
-open FSBOL.Identifiers
+open FSBOL.TopLevel
 open FSBOL.FunctionalComponent
 open FSBOL.Interaction
+open FSBOL.Role
+open FSBOL.Module
+open FSBOL.Model
 
 type ModuleDefinition = 
-    inherit Identifiers
-    new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * functionalComponents:List<FunctionalComponent> * interactions:List<Interaction> -> ModuleDefinition 
+    inherit TopLevel
+    new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * attachments:string list * roles:Role list * modules:Module list * interactions:Interaction list * functionalComponents:FunctionalComponent list * models: Model list  -> ModuleDefinition 
 
-    member functionalComponents:List<FunctionalComponent>
+    member roles:Role list
 
-    member interactions:List<Interaction>
+    member functionalComponents:FunctionalComponent list
+
+    member interactions:Interaction list
+
+    member modules:Module list
+    
+    member models:Model list

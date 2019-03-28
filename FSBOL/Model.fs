@@ -1,6 +1,6 @@
 ﻿[<JavaScript>]
 module FSBOL.Model
-open FSBOL.Identifiers
+open FSBOL.TopLevel
 
 type Language =
     | SBML
@@ -35,8 +35,8 @@ type Framework =
         | "http://identifiers.org/biomodels.sbo/SBO:0000063" -> Discrete
         | _ -> OtherFramework(str)
 
-type Model (uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, source:string, language:Language, framework:Framework) =
-    inherit Identifiers(uri,name,displayId,version,persistantId)
+type Model (uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, attachments:string list, source:string, language:Language, framework:Framework) =
+    inherit TopLevel(uri,name,displayId,version,persistantId,attachments)
     
     member m.source = source
     

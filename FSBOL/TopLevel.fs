@@ -1,13 +1,9 @@
 ﻿[<JavaScript>]
 module FSBOL.TopLevel
+open FSBOL.Identifiers
 
-open FSBOL.ModuleDefinition
-open FSBOL.ComponentDefinition
-open FSBOL.Sequence
-open FSBOL.Model
+[<AbstractClass>]
+type TopLevel(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, attachments:string list ) = 
+    inherit Identifiers(uri,name,displayId,version,persistantId)
 
-type TopLevel = 
-    | ModuleDefinition of ModuleDefinition
-    | ComponentDefinition of ComponentDefinition
-    | Sequence of Sequence
-    | Model of Model
+    member tl.attachments = attachments

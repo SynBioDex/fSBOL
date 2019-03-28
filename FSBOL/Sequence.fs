@@ -1,9 +1,6 @@
 ﻿[<JavaScript>]
 module FSBOL.Sequence
-
-open FSBOL.Identifiers
-open FSBOL.Terms
-open FSBOL.QualifiedName
+open FSBOL.TopLevel
 
 type Encoding = 
    | IUPACDNA
@@ -23,9 +20,8 @@ type Encoding =
      | SMILES -> "http://www.opensmiles.org/opensmiles.html" 
      | OtherEncoding(s) -> s 
 
-type Sequence(uri:string,name:string option, displayId:string option, version:string option, persistantId:string option, sequence:string, encoding:Encoding) = 
-    
-    inherit Identifiers(uri, name, displayId, version, persistantId)
+type Sequence(uri:string,name:string option, displayId:string option, version:string option, persistantId:string option, attachments:string list, sequence:string, encoding:Encoding) = 
+    inherit TopLevel(uri, name, displayId, version, persistantId,attachments)
 
     member x.elements = sequence
 
