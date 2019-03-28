@@ -3,11 +3,11 @@ module FSBOL.SequenceAnnotation
 
 open FSBOL.Identifiers
 open FSBOL.Location
-open FSBOL.Range
+open FSBOL.Role
 open FSBOL.Component
 
 
-type SequenceAnnotation(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, componentObj:Component, locations:List<Location>, roles:string list) = 
+type SequenceAnnotation(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, componentObj:Component, locations:Location list, roles:Role list) = 
     
     inherit Identifiers(uri, name, displayId, version, persistantId)
 

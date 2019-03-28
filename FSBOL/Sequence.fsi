@@ -5,9 +5,10 @@ open FSBOL.Identifiers
 type Encoding = 
    | IUPACDNA
    | IUPACPROTEIN
-   | SMALLMOLECULE
+   | SMILES
    | OtherEncoding of string
-   static member fromString: string -> Encoding
+   static member fromURI: string -> Encoding
+   static member toURI:Encoding -> string
 
 type Sequence = 
     inherit Identifiers

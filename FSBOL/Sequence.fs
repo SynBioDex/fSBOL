@@ -8,15 +8,20 @@ open FSBOL.QualifiedName
 type Encoding = 
    | IUPACDNA
    | IUPACPROTEIN
-   | SMALLMOLECULE
+   | SMILES
    | OtherEncoding of string
-   static member fromString (s:string) =
+   static member fromURI (s:string) =
      match s with 
      | "http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html" -> IUPACDNA
      | "http://www.chem.qmul.ac.uk/iupac/AminoAcid/" -> IUPACPROTEIN
-     | "http://www.opensmiles.org/opensmiles.html" -> SMALLMOLECULE
+     | "http://www.opensmiles.org/opensmiles.html" -> SMILES
      | _ -> OtherEncoding(s)
-     
+   static member toURI (e:Encoding) = 
+     match e with 
+     | IUPACDNA -> "http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"
+     | IUPACPROTEIN -> "http://www.chem.qmul.ac.uk/iupac/AminoAcid/"
+     | SMILES -> "http://www.opensmiles.org/opensmiles.html" 
+     | OtherEncoding(s) -> s 
 
 type Sequence(uri:string,name:string option, displayId:string option, version:string option, persistantId:string option, sequence:string, encoding:Encoding) = 
     
@@ -28,7 +33,7 @@ type Sequence(uri:string,name:string option, displayId:string option, version:st
       match encoding with 
       | IUPACDNA -> "http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"
       | IUPACPROTEIN -> "http://www.chem.qmul.ac.uk/iupac/AminoAcid/"
-      | SMALLMOLECULE -> "http://www.opensmiles.org/opensmiles.html"
+      | SMILES -> "http://www.opensmiles.org/opensmiles.html"
       | OtherEncoding(uri) -> uri
 
 

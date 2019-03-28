@@ -2,6 +2,7 @@
 module FSBOL.Component
 open FSBOL.ComponentInstance
 open FSBOL.MapsTo
+open FSBOL.Role
 
 type RoleIntegration = 
     | OverrideRoles
@@ -13,9 +14,9 @@ type RoleIntegration =
 type Component = 
     inherit ComponentInstance
     
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * definition:string * access:string * mapsTos:MapsTo list *  roles:string list * roleIntegrations: RoleIntegration list -> Component
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * definition:string * access:string * mapsTos:MapsTo list *  roles:Role list * roleIntegrations: RoleIntegration list -> Component
 
-    member roles:List<string>
+    member roles:Role list
 
-    member roleIntegrations:List<RoleIntegration>
+    member roleIntegrations:RoleIntegration list
     

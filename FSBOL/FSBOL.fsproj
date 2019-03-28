@@ -8,6 +8,8 @@
   <ItemGroup>
     <Compile Include="websharperstubs.fs" />
     <Compile Include="Terms.fs" />
+    <Compile Include="Type.fs" />
+    <Compile Include="Role.fs" />
     <Compile Include="QualifiedName.fs" />
     <Compile Include="Identifiers.fsi" />
     <Compile Include="Identifiers.fs" />
@@ -23,12 +25,18 @@
     <Compile Include="Location.fs" />
     <Compile Include="Range.fsi" />
     <Compile Include="Range.fs" />
+    <Compile Include="Cut.fsi" />
+    <Compile Include="Cut.fs" />
+    <Compile Include="GenericLocation.fsi" />
+    <Compile Include="GenericLocation.fs" />
     <Compile Include="SequenceAnnotation.fsi" />
     <Compile Include="SequenceAnnotation.fs" />
     <Compile Include="SequenceConstraint.fsi" />
     <Compile Include="SequenceConstraint.fs" />
     <Compile Include="ComponentDefinition.fsi" />
     <Compile Include="ComponentDefinition.fs" />
+    <Compile Include="Model.fsi" />
+    <Compile Include="Model.fs" />
     <Compile Include="FunctionalComponent.fsi" />
     <Compile Include="FunctionalComponent.fs" />
     <Compile Include="Participation.fsi" />

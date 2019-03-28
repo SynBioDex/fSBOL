@@ -3,23 +3,26 @@ module FSBOL.ComponentDefinition
 open FSBOL.Identifiers
 open FSBOL.Component
 open FSBOL.SequenceAnnotation
+open FSBOL.SequenceConstraint
 open FSBOL.Sequence
-
-open System.Xml
+open FSBOL.Role
+open FSBOL.Type
 
 type ComponentDefinition = 
     inherit Identifiers
 
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * types:List<string> * roles:List<string> * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:List<SequenceAnnotation>  -> ComponentDefinition
+    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * types:Type list * roles:Role list * sequences:List<Sequence> * components:List<Component> *  sequenceAnnotations:SequenceAnnotation list *  sequenceConstraints:SequenceConstraint list  -> ComponentDefinition
 
     static member createHigherFunction: name:string * urlPrefix:string * displayId:string * version:string  * types:List<string> * roles:List<string> * components:List<ComponentDefinition> -> ComponentDefinition
 
-    member components:List<Component>
+    member components:Component list
 
-    member sequenceAnnotations:List<SequenceAnnotation> 
+    member sequenceAnnotations:SequenceAnnotation list 
 
-    member sequences:List<Sequence> 
+    member sequenceConstraints:SequenceConstraint list
 
-    member types:List<string>
+    member sequences:Sequence list 
 
-    member roles:List<string>
+    member types:Type list
+
+    member roles:Role list
