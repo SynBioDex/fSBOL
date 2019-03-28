@@ -1,6 +1,6 @@
 ﻿[<JavaScript>]
 
-(* Basic Indentifiers in SBOL*)
+/// Basic Indentifiers in SBOL
 module FSBOL.Identifiers
 
 open System.Collections.Generic
@@ -10,22 +10,22 @@ type Identifiers =
          
     new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option -> Identifiers
     
-    (* Unique URI that identifies the object*)
+    /// Unique URI that identifies the object
     member uri:string
     
-    (* Version of the object*)
+    /// Version of the object
     member version:string option
     
-    (* Name *)
+    /// Name
     member name:string option
     
-    (* Human readable id of the obejct *)
+    /// Human readable id of the obejct
     member displayId:string option
     
-    (* Indentity shared by multiple versions of the same object *)
+    /// Indentity shared by multiple versions of the same object
     member persistentIdentity:string option 
     
-    (* Description *)
+    /// Description
     member description:string option with get,set
     
     member private uriAnnotations:Dictionary<string,string>

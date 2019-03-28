@@ -19,7 +19,7 @@ open System.Xml
 open System.IO
 open System.Text
 
-(*
+
 let idFromXml (xElem:XmlElement) = 
         let idval = xElem.GetAttribute("about")
         //let displayIdXmlList = xElem.ChildNodes..GetElementsByTagName(QualifiedName.displayId)
@@ -59,37 +59,57 @@ let idFromXml (xElem:XmlElement) =
         (name,displayId,version)
 
 
+let serializeIdentifiers (xmlElement:XmlElement) (xdoc:XmlDocument) (uri:string)  (name:string option) (displayId:string option) (version:string option) (persistentIdentity:string option) (description:string option)= 
+    
+        xmlElement.SetAttribute("about",Terms.rdfns,uri) |> ignore
+
+        (* Version *)
+        match version with 
+        | Some(ver) -> 
+            let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
+            verXml.AppendChild(xdoc.CreateTextNode(ver)) |> ignore
+            xmlElement.AppendChild(verXml) |> ignore
+        | None -> ()
+        
+        (* Name *)
+        match name with 
+        | Some(n) ->  
+            let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
+            nameXml.AppendChild(xdoc.CreateTextNode(n)) |> ignore
+            xmlElement.AppendChild(nameXml) |> ignore
+        | None -> 
+
+        
+        (* Display Id*)
+        match displayId with 
+        | Some(display) -> 
+            let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
+            disIdXml.AppendChild(xdoc.CreateTextNode(display)) |> ignore
+            xmlElement.AppendChild(disIdXml) |> ignore
+        | None -> ()
+
+       
+        (* Persistent Identity*)
+        match persistentIdentity with 
+        | Some(pid) -> 
+            let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
+            perIdXml.SetAttribute("resource",Terms.rdfns,pid) |> ignore
+            xmlElement.AppendChild(perIdXml)  |> ignore
+        | None -> ()
+
+        (* Description *)
+        match description with 
+        | Some(desc) -> 
+            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
+            descriptionXml.AppendChild(xdoc.CreateTextNode(desc)) |> ignore
+            xmlElement.AppendChild(descriptionXml) |> ignore
+        | None -> ()
+
 let serializeSequence (xdoc:XmlDocument) (x:Sequence)= 
         
         let xmlElement = xdoc.CreateElement(QualifiedName.Sequence,Terms.sbolns)
-        xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-        (* Persistent Identity*)
-        let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-        perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-        xmlElement.AppendChild(perIdXml) |> ignore
-
-        (* Display Id*)
-        let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-        disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-        xmlElement.AppendChild(disIdXml) |> ignore
-
-        (* Version *)
-        let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-        verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-        xmlElement.AppendChild(verXml) |> ignore
-
-        (* Name *)
-        let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-        nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-        xmlElement.AppendChild(nameXml) |> ignore
-
-        (* Description *)
-        if x.description <> "" then
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-
+        
+        serializeIdentifiers xmlElement xdoc x.uri x.name x.displayId x.version x.persistentIdentity x.description
 
         (* Sequence *)
         let elementsXml = xdoc.CreateElement(QualifiedName.elements,Terms.sbolns)
@@ -99,11 +119,11 @@ let serializeSequence (xdoc:XmlDocument) (x:Sequence)=
         (* Sequence Encoding *)
         let encodingXml = xdoc.CreateElement(QualifiedName.encoding,Terms.sbolns)
         encodingXml.SetAttribute("resource",Terms.rdfns,x.encoding) |> ignore
-        //encodingXml.SetAttribute("rdf:resource",x.encoding) 
         xmlElement.AppendChild(encodingXml) |> ignore
 
         xmlElement
 
+        (*
 let sequenceFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")
         let (name,displayId,version) = idFromXml(xElem)
@@ -932,4 +952,4 @@ let sbolXmlString (x:SBOLDocument) =
     (serializeSBOLDocument x).WriteTo(xw)
     xw.Close()
     sw.ToString()
-    *)
+  *)

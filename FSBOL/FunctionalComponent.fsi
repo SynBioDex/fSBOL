@@ -7,7 +7,7 @@ type Direction =
     | In
     | Out
     | InOut
-    | None
+    | NoDirection
     static member toURI:Direction -> string 
     static member fromURI:string -> Direction 
 

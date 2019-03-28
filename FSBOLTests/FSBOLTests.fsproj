@@ -9,7 +9,7 @@
   <ItemGroup>
     <Compile Include="Sample.fs" />
     <Compile Include="Main.fs" />
-	<None Include="paket.references"/>
+	<None Include="paket.references" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,5 +18,9 @@
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.*" />
   </ItemGroup>
-  <Import Project="..\.paket\Paket.Restore.targets"/>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSBOL\FSBOL.fsproj" />
+  </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
