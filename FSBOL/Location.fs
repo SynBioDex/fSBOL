@@ -18,7 +18,7 @@ type Orientation =
         | "http://sbolstandard.org/#reverseComplement" -> ReverseComplement
         | _ -> OtherOrientation(str)
 
-
+[<AbstractClass>]
 type Location(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, orientation:Orientation) =
     inherit Identifiers(uri,name,displayId,version,persistantId)
 

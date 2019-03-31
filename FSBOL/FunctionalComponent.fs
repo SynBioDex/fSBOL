@@ -22,7 +22,7 @@ type Direction =
         | "http://sbols.org/v2#none" -> NoDirection
         | _ -> failwith "Unexpected type of Direction found. Direction must either be of type In, Out, InOut, or None."
 
-type FunctionalComponent(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, definition:string, access:string, mapsTos:MapsTo list,direction:Direction) = 
+type FunctionalComponent(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option, definition:string, access:Access, mapsTos:MapsTo list,direction:Direction) = 
     inherit ComponentInstance(uri, name, displayId, version, persistantId,definition,access,mapsTos)
 
     member x.direction = direction

@@ -1,25 +1,641 @@
 ﻿module FSBOL.XmlSerializer
 
-
 open FSBOL.Identifiers
 open FSBOL.Sequence
+open FSBOL.Attachment
+open FSBOL.Collection
+open FSBOL.MapsTo
+open FSBOL.ComponentInstance
 open FSBOL.Component
-open FSBOL.Range
+open FSBOL.Role
 open FSBOL.Location
+open FSBOL.Range
+open FSBOL.Cut
+open FSBOL.GenericLocation
 open FSBOL.SequenceAnnotation
+open FSBOL.SequenceConstraint
 open FSBOL.ComponentDefinition
+open FSBOL.VariableComponent
+open FSBOL.CombinatorialDerivation
+open FSBOL.Model
+open FSBOL.Module
 open FSBOL.FunctionalComponent
 open FSBOL.Participation
 open FSBOL.Interaction
 open FSBOL.ModuleDefinition
+open FSBOL.Implementation
 open FSBOL.TopLevel
 open FSBOL.SBOLDocument
+
 
 open System.Xml
 open System.IO
 open System.Text
 
+/// To XML string
+let sbol_to_Xml_string (xdoc:XmlDocument) = 
+    let sw = new StringWriter()
+    let xwSettings = new XmlWriterSettings()
+    xwSettings.Indent <- true
+    xwSettings.Encoding <- Encoding.UTF8
+    let xw = XmlWriter.Create(sw,xwSettings)
+    (xdoc).WriteTo(xw)
+    xw.Close()
+    sw.ToString()
 
+
+let identifiersToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (id:Identifiers)= 
+    
+        xmlElement.SetAttribute("about",Terms.rdfns,id.uri) |> ignore
+
+        (* Version *)
+        match id.version with 
+        | Some(ver) -> 
+            let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
+            verXml.AppendChild(xdoc.CreateTextNode(ver)) |> ignore
+            xmlElement.AppendChild(verXml) |> ignore
+        | None -> ()
+        
+        (* Name *)
+        match id.name with 
+        | Some(n) ->  
+            let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
+            nameXml.AppendChild(xdoc.CreateTextNode(n)) |> ignore
+            xmlElement.AppendChild(nameXml) |> ignore
+        | None -> 
+
+        
+        (* Display Id*)
+        match id.displayId with 
+        | Some(display) -> 
+            let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
+            disIdXml.AppendChild(xdoc.CreateTextNode(display)) |> ignore
+            xmlElement.AppendChild(disIdXml) |> ignore
+        | None -> ()
+
+       
+        (* Persistent Identity*)
+        match id.persistentIdentity with 
+        | Some(pid) -> 
+            let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
+            perIdXml.SetAttribute("resource",Terms.rdfns,pid) |> ignore
+            xmlElement.AppendChild(perIdXml)  |> ignore
+        | None -> ()
+
+        (* Description *)
+        match id.description with 
+        | Some(desc) -> 
+            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
+            descriptionXml.AppendChild(xdoc.CreateTextNode(desc)) |> ignore
+            xmlElement.AppendChild(descriptionXml) |> ignore
+        | None -> ()
+
+
+        let addURIannotations (xmlElement:XmlElement) (xdoc:XmlDocument) ((u,ann):string*string) = 
+            let qn = "ns0:" + u 
+            let annXml = xdoc.CreateElement(qn,Terms.ns0)
+            annXml.SetAttribute("resource",Terms.ns0,ann) |> ignore
+            xmlElement.AppendChild(annXml) |> ignore
+        
+        id.getUriAnnotations |> List.iter(fun (u,ann) -> addURIannotations xmlElement xdoc (u,ann) |> ignore)
+
+        let addStringannotations (xmlElement:XmlElement) (xdoc:XmlDocument) ((u,ann):string*string) = 
+            let qn = "ns0:" + u 
+            let annXml = xdoc.CreateElement(qn,Terms.ns0)
+            annXml.AppendChild(xdoc.CreateTextNode(ann)) |> ignore
+            xmlElement.AppendChild(annXml) |> ignore
+        
+        id.getStringAnnotations |> List.iter(fun (u,ann) -> addStringannotations xmlElement xdoc (u,ann) |> ignore)
+
+
+let topLevelToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (toplevel:TopLevel)= 
+    identifiersToXml xmlElement xdoc toplevel
+    let attachmentToXML (xmlElement:XmlElement) (xdoc:XmlDocument) (attachmenturi:string) = 
+        let attachmentXml = xdoc.CreateElement(QualifiedName.attachmentProperty,Terms.sbolns)
+        attachmentXml.SetAttribute("resource",Terms.rdfns,attachmenturi) |> ignore
+        xmlElement.AppendChild(attachmentXml) |> ignore
+    toplevel.attachments |> List.iter (fun x -> attachmentToXML xmlElement xdoc x)
+/// Serialize AttachmentProperty 
+    
+
+/// Serialize Sequence to XML
+let sequenceToXml (xdoc:XmlDocument) (x:Sequence)=         
+    let xmlElement = xdoc.CreateElement(QualifiedName.Sequence,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x
+
+    (* Sequence *)
+    let elementsXml = xdoc.CreateElement(QualifiedName.elementsProperty,Terms.sbolns)
+    elementsXml.AppendChild(xdoc.CreateTextNode(x.elements)) |> ignore
+    xmlElement.AppendChild(elementsXml) |> ignore
+
+    (* Sequence Encoding *)
+    let encodingXml = xdoc.CreateElement(QualifiedName.encodingProperty,Terms.sbolns)
+    encodingXml.SetAttribute("resource",Terms.rdfns,x.encoding) |> ignore
+    xmlElement.AppendChild(encodingXml) |> ignore
+
+    xmlElement
+
+/// Serialize Attachment to XML
+let attachmentToXml (xdoc:XmlDocument) (x:Attachment) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Attachment,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x
+    
+    (* Source *)
+    let sourceXml = xdoc.CreateElement(QualifiedName.sourceProperty,Terms.sbolns)
+    sourceXml.SetAttribute("resource",Terms.rdfns,x.source) |> ignore
+    xmlElement.AppendChild(sourceXml) |> ignore
+
+    (* Format *)
+    match x.format with 
+    | Some(f) -> 
+        let formatXml = xdoc.CreateElement(QualifiedName.formatProperty,Terms.sbolns)
+        formatXml.SetAttribute("resource",Terms.rdfns,f) |> ignore
+        xmlElement.AppendChild(formatXml) |> ignore
+    | None -> ()
+    
+
+    (* Size *)
+    match x.size with 
+    | Some(s) -> 
+        let sizeXml = xdoc.CreateElement(QualifiedName.sizeProperty,Terms.sbolns)
+        sizeXml.AppendChild(xdoc.CreateTextNode(s.ToString())) |> ignore
+        xmlElement.AppendChild(sizeXml) |> ignore
+    | None -> ()
+
+    (* Hash *)
+    match x.hash with 
+    | Some(h) -> 
+        let hashXml = xdoc.CreateElement(QualifiedName.hashProperty,Terms.sbolns)
+        hashXml.AppendChild(xdoc.CreateTextNode(h)) |> ignore
+        xmlElement.AppendChild(hashXml) |> ignore
+    | None -> ()
+
+    xmlElement
+
+
+/// Serialize Collection to XML
+let collectionToXml (xdoc:XmlDocument) (x:Collection) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Collection,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x
+
+    (* Members *)
+    let memberToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (memberuri:string) = 
+        let memberXml = xdoc.CreateElement(QualifiedName.memberProperty,Terms.sbolns)
+        memberXml.SetAttribute("resource",Terms.rdfns,memberuri) |> ignore
+        xmlElement.AppendChild(memberXml) |> ignore
+    
+    x.members |> List.iter (fun m -> memberToXml xmlElement xdoc m)
+
+    xmlElement
+
+/// Serialize MapsTo to XML
+let mapsToToXml (xdoc:XmlDocument) (x:MapsTo) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.MapsTo,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x
+    
+    (* Refinement *)
+    let refinementXml = xdoc.CreateElement(QualifiedName.refinementProperty,Terms.sbolns)
+    refinementXml.SetAttribute("resource",Terms.rdfns,Refinement.toURI x.refinement) |> ignore
+    xmlElement.AppendChild(refinementXml) |> ignore
+
+    (* Local *)
+    let localXml = xdoc.CreateElement(QualifiedName.localProperty,Terms.sbolns)
+    localXml.SetAttribute("resource",Terms.rdfns,x.local) |> ignore
+    xmlElement.AppendChild(localXml) |> ignore
+
+    (* Remote *)
+    let remoteXml = xdoc.CreateElement(QualifiedName.remoteProperty,Terms.sbolns)
+    remoteXml.SetAttribute("resource",Terms.rdfns,x.remote) |> ignore
+    xmlElement.AppendChild(remoteXml) |> ignore
+
+    xmlElement
+
+/// Serialize ComponentInstance  to XML
+let componentInstanceToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (x:ComponentInstance) = 
+    
+    identifiersToXml xmlElement xdoc x
+    
+    (*Maps Tos*)
+    x.mapsTos |> List.iter (fun mt ->
+        let mapsToXml = xdoc.CreateElement(QualifiedName.mapsToProperty,Terms.sbolns)
+        mapsToXml.AppendChild(mapsToToXml xdoc mt) |> ignore
+        xmlElement.AppendChild(mapsToXml) |> ignore
+        )
+
+    (*Definition*)
+    let definitionXml = xdoc.CreateElement(QualifiedName.definitionProperty,Terms.sbolns)
+    definitionXml.SetAttribute("resouce",Terms.rdfns,x.definition) |> ignore
+    xmlElement.AppendChild(definitionXml) |> ignore
+
+    (*Access*)
+    let accessXml = xdoc.CreateElement(QualifiedName.accessProperty,Terms.sbolns)
+    accessXml.SetAttribute("resouce",Terms.rdfns,Access.toURI x.access) |> ignore
+    xmlElement.AppendChild(accessXml) |> ignore
+
+let roleToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (role:Role) =
+    let roleXml = xdoc.CreateElement(QualifiedName.roleProperty,Terms.sbolns)
+    roleXml.SetAttribute("resource",Terms.rdfns,Role.toURI role) |> ignore
+    xmlElement.AppendChild(roleXml) |> ignore
+
+/// Serialize Component to XML
+let componentToXml (xdoc:XmlDocument) (x:Component) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Component,Terms.sbolns)
+    
+    componentInstanceToXml xmlElement xdoc x 
+    
+    (* Roles *)
+    x.roles |> List.iter (fun r -> roleToXml xmlElement xdoc r)        
+
+    x.roleIntegrations |> List.iter (fun ri -> 
+        let riXML = xdoc.CreateElement(QualifiedName.roleIntegrationProperty,Terms.sbolns)
+        riXML.SetAttribute("resource",Terms.rdfns,RoleIntegration.toURI ri) |> ignore
+        xmlElement.AppendChild(riXML) |> ignore
+        )
+
+    xmlElement
+
+/// Serialize Location
+let locationToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (x:Location) = 
+    
+    identifiersToXml xmlElement xdoc x
+    
+    let orientationXml = xdoc.CreateElement(QualifiedName.orientationProperty,Terms.sbolns)
+    orientationXml.SetAttribute("resource",Terms.rdfns,Orientation.toURI x.orientation) |> ignore
+    xmlElement.AppendChild(orientationXml) |> ignore
+
+/// Serialize Range
+let rangeToXml (xdoc:XmlDocument) (x:Range) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Range,Terms.sbolns)
+    
+    locationToXml xmlElement xdoc x 
+    
+    let startIndexXml = xdoc.CreateElement(QualifiedName.startIndexProperty,Terms.sbolns)
+    startIndexXml.AppendChild(xdoc.CreateTextNode(x.startIndex.ToString())) |> ignore
+    xmlElement.AppendChild(startIndexXml) |> ignore
+
+    let endIndexXml = xdoc.CreateElement(QualifiedName.endIndexProperty,Terms.sbolns)
+    endIndexXml.AppendChild(xdoc.CreateTextNode(x.endIndex.ToString())) |> ignore
+    xmlElement.AppendChild(endIndexXml) |> ignore
+
+    xmlElement
+
+/// Serialize Cut
+let cutToXml (xdoc:XmlDocument) (x:Cut) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Cut,Terms.sbolns)
+    
+    locationToXml xmlElement xdoc x 
+    
+    let atXml = xdoc.CreateElement(QualifiedName.atProperty,Terms.sbolns)
+    atXml.AppendChild(xdoc.CreateTextNode(x.at.ToString())) |> ignore
+    xmlElement.AppendChild(atXml) |> ignore
+
+
+    xmlElement
+
+/// Serialize GenericLocation
+let genericLocationToXml (xdoc:XmlDocument) (x:GenericLocation) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.GenericLocation,Terms.sbolns)
+    
+    locationToXml xmlElement xdoc x 
+
+    xmlElement
+
+/// Serialize SequenceAnnotation
+let sequenceAnnotationToXml (xdoc:XmlDocument) (x:SequenceAnnotation) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.SequenceAnnotation,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x 
+
+    x.locations |> List.iter (fun loc -> 
+        let locationXml = xdoc.CreateElement(QualifiedName.locationProperty,Terms.sbolns)
+        match loc with 
+        | :? Range as range -> locationXml.AppendChild(rangeToXml xdoc range) |> ignore
+        | :? Cut as cut -> locationXml.AppendChild(cutToXml xdoc cut) |> ignore
+        | :? GenericLocation as genericlocation -> locationXml.AppendChild(genericLocationToXml xdoc genericlocation) |> ignore
+        | _ -> failwith "Location can only be of type Range, Cut, or GenericLocation"
+        xmlElement.AppendChild(locationXml) |> ignore
+        )
+    
+
+    
+    match x.componentObj with 
+    | Some(comp) -> 
+        let componentXml = xdoc.CreateElement(QualifiedName.componentProperty,Terms.sbolns)
+        componentXml.SetAttribute("resource",Terms.rdfns,comp.uri) |> ignore
+        xmlElement.AppendChild(componentXml) |> ignore
+    | None -> ()
+    
+    x.roles |> List.iter(fun r -> roleToXml xmlElement xdoc r)
+
+    xmlElement
+
+
+/// Serialize SequenceConstraint
+let sequenceConstraintToXml (xdoc:XmlDocument) (x:SequenceConstraint) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.SequenceConstraint,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x 
+
+    let subjectXml = xdoc.CreateElement(QualifiedName.subjectProperty,Terms.sbolns)
+    subjectXml.SetAttribute("resource",Terms.rdfns,x.subject.uri) |> ignore
+    xmlElement.AppendChild(subjectXml) |> ignore
+
+    let objectXml = xdoc.CreateElement(QualifiedName.objectProperty,Terms.sbolns)
+    objectXml.SetAttribute("resource",Terms.rdfns,x.object.uri) |> ignore
+    xmlElement.AppendChild(objectXml) |> ignore
+
+    let restrictionXml = xdoc.CreateElement(QualifiedName.restrictionProperty,Terms.sbolns)
+    restrictionXml.SetAttribute("resource",Terms.rdfns,Restriction.toURI x.restriction) |> ignore
+    xmlElement.AppendChild(restrictionXml) |> ignore
+
+    xmlElement
+
+/// Serialize ComponentDefinition
+let componentDefinitionToXml (xdoc:XmlDocument) (x:ComponentDefinition) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.ComponentDefinition,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x 
+    
+    (* Add Sequences *)
+    x.sequences |> List.iter(fun seq -> 
+        let seqXml = xdoc.CreateElement(QualifiedName.sequenceProperty,Terms.sbolns)
+        seqXml.SetAttribute("resource",Terms.rdfns,seq.uri) |> ignore
+        xmlElement.AppendChild(seqXml) |> ignore
+        )
+    
+    (* Add Roles*)
+    x.roles |> List.iter(fun role -> roleToXml xmlElement xdoc role)
+    
+    (* Add Types*)    
+    x.types |> List.iter(fun t -> 
+        let typeXml = xdoc.CreateElement(QualifiedName.typeProperty,Terms.sbolns)
+        typeXml.SetAttribute("resource",Terms.rdfns,ComponentDefinitionType.toURI t) |> ignore
+        xmlElement.AppendChild(typeXml) |> ignore
+        )
+    
+    (*Add Components*)    
+    x.components |> List.iter(fun comp -> 
+        let componentPropertyXml = xdoc.CreateElement(QualifiedName.componentProperty,Terms.sbolns)
+        componentPropertyXml.AppendChild(componentToXml xdoc comp) |> ignore
+        xmlElement.AppendChild(componentPropertyXml) |> ignore
+        )
+    
+
+    (*Add Sequence Annotations*)    
+    x.sequenceAnnotations |> List.iter (fun sa -> 
+        let saPropertyXml = xdoc.CreateElement(QualifiedName.sequenceAnnotationProperty,Terms.sbolns)
+        saPropertyXml.AppendChild(sequenceAnnotationToXml xdoc sa) |> ignore
+        xmlElement.AppendChild(saPropertyXml) |> ignore
+        )
+    
+    
+    (*Add Sequence Constraints*)    
+    x.sequenceConstraints |> List.iter (fun sc -> 
+        let scPropertyXml = xdoc.CreateElement(QualifiedName.sequenceConstraintsProperty,Terms.sbolns)
+        scPropertyXml.AppendChild(sequenceConstraintToXml xdoc sc) |> ignore
+        xmlElement.AppendChild(scPropertyXml) |> ignore
+        )
+        
+    xmlElement
+
+/// Serialize VariableComponent
+let variableComponentToXml (xdoc:XmlDocument) (x:VariableComponent) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.VariableComponent,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x 
+    
+    (*Add Variable*)
+    let componentXml = xdoc.CreateElement(QualifiedName.variableProperty,Terms.sbolns)
+    componentXml.SetAttribute("resource",Terms.rdfns,x.variable) |> ignore
+    xmlElement.AppendChild(componentXml) |> ignore
+
+    x.variants |> List.iter (fun v -> 
+        let variantXml = xdoc.CreateElement(QualifiedName.variantProperty,Terms.sbolns)
+        variantXml.SetAttribute("resource",Terms.rdfns,v) |> ignore
+        xmlElement.AppendChild(variantXml) |> ignore
+        )
+
+    x.variantDerivations |> List.iter (fun v -> 
+        let variantXml = xdoc.CreateElement(QualifiedName.variantDerivationProperty,Terms.sbolns)
+        variantXml.SetAttribute("resource",Terms.rdfns,v) |> ignore
+        xmlElement.AppendChild(variantXml) |> ignore
+        )
+    
+    x.variantCollections |> List.iter (fun v -> 
+        let variantXml = xdoc.CreateElement(QualifiedName.variantCollectionProperty,Terms.sbolns)
+        variantXml.SetAttribute("resource",Terms.rdfns,v) |> ignore
+        xmlElement.AppendChild(variantXml) |> ignore
+        )
+
+    xmlElement
+
+/// Serialize CombinatorialDerivation
+let combinatorialDerivationToXml (xdoc:XmlDocument) (x:CombinatorialDerivation) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.CombinatorialDerivation,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x 
+    
+    match x.strategy with 
+    | Some(s) -> 
+        let strategyXml = xdoc.CreateElement(QualifiedName.strategyProperty,Terms.sbolns)
+        strategyXml.SetAttribute("resource",Terms.rdfns,Strategy.toURI s) |> ignore
+        xmlElement.AppendChild(strategyXml) |> ignore
+    | None -> ()
+    
+    let templateXml = xdoc.CreateElement(QualifiedName.templateProperty,Terms.sbolns)
+
+    
+
+    x.variableComponents |> List.iter (fun vc ->
+        let variableComponentXml = xdoc.CreateElement(QualifiedName.variableComponentProperty,Terms.sbolns)
+        variableComponentXml.AppendChild(variableComponentToXml xdoc vc) |> ignore
+        xmlElement.AppendChild(variableComponentXml) |> ignore
+        )
+    
+    xmlElement
+
+/// Serialize Model
+let modelToXml (xdoc:XmlDocument) (x:Model) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Model,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x 
+    
+    let sourceXml = xdoc.CreateElement(QualifiedName.sourceProperty,Terms.sbolns)
+    sourceXml.SetAttribute("resource",Terms.rdfns,x.source) |> ignore
+    xmlElement.AppendChild(sourceXml) |> ignore
+
+    let langXml = xdoc.CreateElement(QualifiedName.languageProperty,Terms.sbolns)
+    langXml.SetAttribute("resource",Terms.rdfns,Language.toURI x.language) |> ignore
+    xmlElement.AppendChild(langXml) |> ignore
+
+    let frameworkXml = xdoc.CreateElement(QualifiedName.frameworkProperty,Terms.sbolns)
+    frameworkXml.SetAttribute("resource",Terms.rdfns,Framework.toURI x.framework) |> ignore
+    xmlElement.AppendChild(frameworkXml) |> ignore
+    
+    xmlElement
+
+/// Serialize Module
+let moduleToXml (xdoc:XmlDocument) (x:Module) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Module,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x 
+    
+    let definitionXml = xdoc.CreateElement(QualifiedName.definitionProperty,Terms.sbolns)
+    definitionXml.SetAttribute("resource",Terms.rdfns,x.definition) |> ignore
+    xmlElement.AppendChild(definitionXml) |> ignore
+
+    
+    x.mapsTos |> List.iter (fun mt -> 
+        let mapsTosXml = xdoc.CreateElement(QualifiedName.mapsToProperty,Terms.sbolns)
+        mapsTosXml.AppendChild(mapsToToXml xdoc mt) |> ignore
+        xmlElement.AppendChild(mapsTosXml) |> ignore
+        )
+    
+    
+    xmlElement
+
+/// Serialize FunctionalComponent
+let functionalComponentToXml (xdoc:XmlDocument) (x:FunctionalComponent) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.FunctionalComponent,Terms.sbolns)
+    
+    componentInstanceToXml xmlElement xdoc x 
+    
+    let directionXml = xdoc.CreateElement(QualifiedName.directionProperty,Terms.sbolns)
+    directionXml.SetAttribute("resource",Terms.rdfns,Direction.toURI x.direction) |> ignore
+    xmlElement.AppendChild(directionXml) |> ignore
+    
+    xmlElement
+
+
+/// Serialize Participation
+let participationToXml (xdoc:XmlDocument) (x:Participation) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Participation,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x 
+    
+    x.roles |> List.iter (fun r -> 
+        let xmlRole = xdoc.CreateElement(QualifiedName.roleProperty,Terms.sbolns)
+        xmlRole.SetAttribute("resource",Terms.rdfns,ParticipationRole.toURI r) |> ignore
+        xmlElement.AppendChild(xmlRole) |> ignore
+        )
+    
+    let participantXml = xdoc.CreateElement(QualifiedName.participantProperty,Terms.sbolns)
+    participantXml.SetAttribute("resource",Terms.rdfns,x.participant.uri) |> ignore
+    xmlElement.AppendChild(participantXml) |> ignore
+
+    xmlElement
+
+/// Serialize Interaction
+let interactionToXml (xdoc:XmlDocument) (x:Interaction) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Interaction,Terms.sbolns)
+    
+    identifiersToXml xmlElement xdoc x 
+    
+    x.participations |> List.iter (fun part -> 
+        let partXml = xdoc.CreateElement(QualifiedName.participationProperty,Terms.sbolns)
+        partXml.AppendChild(participationToXml xdoc part) |> ignore
+        xmlElement.AppendChild(partXml) |> ignore
+        )
+    
+    x.types |> List.iter (fun t -> 
+        let typeXml = xdoc.CreateElement(QualifiedName.typeProperty,Terms.sbolns)
+        typeXml.SetAttribute("resource",Terms.rdfns,InteractionType.toURI t) |> ignore
+        xmlElement.AppendChild(typeXml) |> ignore
+        )
+
+    xmlElement
+
+/// Serialize ModuleDefinition
+let moduleDefinitionToXml (xdoc:XmlDocument) (x:ModuleDefinition) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.ModuleDefinition,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x 
+    
+    x.roles |> List.iter(fun r -> 
+        let roleXml = xdoc.CreateElement(QualifiedName.roleProperty,Terms.sbolns)
+        roleXml.SetAttribute("resource",Terms.rdfns,Role.toURI r) |> ignore
+        xmlElement.AppendChild(roleXml) |> ignore
+        )
+    
+    x.functionalComponents |> List.iter(fun fc -> 
+        let fcXml =xdoc.CreateElement(QualifiedName.functionalComponentProperty,Terms.sbolns)
+        fcXml.AppendChild(functionalComponentToXml xdoc fc) |> ignore
+        xmlElement.AppendChild(fcXml) |> ignore
+        )
+
+    x.interactions |> List.iter(fun i -> 
+        let interactionXml =xdoc.CreateElement(QualifiedName.interactionProperty,Terms.sbolns)
+        interactionXml.AppendChild(interactionToXml xdoc i) |> ignore
+        xmlElement.AppendChild(interactionXml) |> ignore
+        )
+
+    x.modules |> List.iter (fun m -> 
+        let moduleXml = xdoc.CreateElement(QualifiedName.moduleProperty,Terms.sbolns)
+        moduleXml.AppendChild(moduleToXml xdoc m) |> ignore
+        xmlElement.AppendChild(moduleXml) |> ignore
+        )    
+
+    x.models |> List.iter (fun m -> 
+        let modelXml = xdoc.CreateElement(QualifiedName.modelProperty,Terms.sbolns)
+        modelXml.SetAttribute("resource",Terms.rdfns,m.uri) |> ignore
+        xmlElement.AppendChild(modelXml) |> ignore
+        )
+
+    xmlElement
+
+/// Serialize Implementation
+let implementationToXml (xdoc:XmlDocument) (x:Implementation) = 
+    let xmlElement = xdoc.CreateElement(QualifiedName.Implementation,Terms.sbolns)
+    
+    topLevelToXml xmlElement xdoc x 
+    
+    match x.built with 
+    | Some(b) -> 
+        let builtXml = xdoc.CreateElement(QualifiedName.builtProperty,Terms.sbolns)
+        match b with 
+        | CD(y) -> builtXml.SetAttribute("resource",Terms.rdfns,y.uri) |> ignore
+        | MD(y) -> builtXml.SetAttribute("resource",Terms.rdfns,y.uri) |> ignore
+        xmlElement.AppendChild(builtXml) |> ignore
+    | None -> ()
+
+    xmlElement
+
+
+/// Serialize SBOLDocument
+let sbolToXml (sbol:SBOLDocument) =
+    let xdoc = new XmlDocument();
+    let rootXml = xdoc.CreateElement(QualifiedName.rdfQN,Terms.rdfns) 
+    xdoc.AppendChild(rootXml) |> ignore
+    xdoc.DocumentElement.SetAttribute(QualifiedName.sbolQN,Terms.sbolns)
+    xdoc.DocumentElement.SetAttribute(QualifiedName.dctermsQN,Terms.dctermsns)
+    xdoc.DocumentElement.SetAttribute(QualifiedName.provQN,Terms.provns)
+    xdoc.DocumentElement.SetAttribute(QualifiedName.ns0QN,Terms.ns0)
+    xdoc.AppendChild(rootXml) |> ignore
+    
+    sbol.collections |> List.iter (fun x -> rootXml.AppendChild(collectionToXml xdoc x) |> ignore)
+
+    sbol.attachments |> List.iter (fun x -> rootXml.AppendChild(attachmentToXml xdoc x) |> ignore)
+
+    sbol.sequences |> List.iter (fun x -> rootXml.AppendChild(sequenceToXml xdoc x) |> ignore)
+
+    sbol.componentDefinitions |> List.iter (fun x -> rootXml.AppendChild(componentDefinitionToXml xdoc x) |> ignore)
+    
+    sbol.models |> List.iter (fun x -> rootXml.AppendChild(modelToXml xdoc x) |> ignore)
+
+    sbol.moduleDefinitions |> List.iter (fun x -> rootXml.AppendChild(moduleDefinitionToXml xdoc x) |> ignore)
+    
+    sbol.combinatorialDerivations |> List.iter (fun x -> rootXml.AppendChild(combinatorialDerivationToXml xdoc x) |> ignore)
+    
+    sbol.implementations |> List.iter(fun x -> rootXml.AppendChild(implementationToXml xdoc x) |> ignore)
+
+    xdoc
+
+
+(* From XML Methods *)
 let idFromXml (xElem:XmlElement) = 
         let idval = xElem.GetAttribute("about")
         //let displayIdXmlList = xElem.ChildNodes..GetElementsByTagName(QualifiedName.displayId)
@@ -58,71 +674,6 @@ let idFromXml (xElem:XmlElement) =
         let version = versionXmlList.Item(0).InnerText
         (name,displayId,version)
 
-
-let serializeIdentifiers (xmlElement:XmlElement) (xdoc:XmlDocument) (uri:string)  (name:string option) (displayId:string option) (version:string option) (persistentIdentity:string option) (description:string option)= 
-    
-        xmlElement.SetAttribute("about",Terms.rdfns,uri) |> ignore
-
-        (* Version *)
-        match version with 
-        | Some(ver) -> 
-            let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-            verXml.AppendChild(xdoc.CreateTextNode(ver)) |> ignore
-            xmlElement.AppendChild(verXml) |> ignore
-        | None -> ()
-        
-        (* Name *)
-        match name with 
-        | Some(n) ->  
-            let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-            nameXml.AppendChild(xdoc.CreateTextNode(n)) |> ignore
-            xmlElement.AppendChild(nameXml) |> ignore
-        | None -> 
-
-        
-        (* Display Id*)
-        match displayId with 
-        | Some(display) -> 
-            let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-            disIdXml.AppendChild(xdoc.CreateTextNode(display)) |> ignore
-            xmlElement.AppendChild(disIdXml) |> ignore
-        | None -> ()
-
-       
-        (* Persistent Identity*)
-        match persistentIdentity with 
-        | Some(pid) -> 
-            let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-            perIdXml.SetAttribute("resource",Terms.rdfns,pid) |> ignore
-            xmlElement.AppendChild(perIdXml)  |> ignore
-        | None -> ()
-
-        (* Description *)
-        match description with 
-        | Some(desc) -> 
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(desc)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-        | None -> ()
-
-let serializeSequence (xdoc:XmlDocument) (x:Sequence)= 
-        
-        let xmlElement = xdoc.CreateElement(QualifiedName.Sequence,Terms.sbolns)
-        
-        serializeIdentifiers xmlElement xdoc x.uri x.name x.displayId x.version x.persistentIdentity x.description
-
-        (* Sequence *)
-        let elementsXml = xdoc.CreateElement(QualifiedName.elements,Terms.sbolns)
-        elementsXml.AppendChild(xdoc.CreateTextNode(x.elements)) |> ignore
-        xmlElement.AppendChild(elementsXml) |> ignore
-
-        (* Sequence Encoding *)
-        let encodingXml = xdoc.CreateElement(QualifiedName.encoding,Terms.sbolns)
-        encodingXml.SetAttribute("resource",Terms.rdfns,x.encoding) |> ignore
-        xmlElement.AppendChild(encodingXml) |> ignore
-
-        xmlElement
-
         (*
 let sequenceFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")
@@ -158,48 +709,6 @@ let sequenceFromXml (xElem:XmlElement) =
 
         new Sequence(name,urlPrefix,displayId,version,elements,Encoding.fromString(encoding))
 
-let serializeComponent (xdoc:XmlDocument) (x:Component) =
-        let xmlElement = xdoc.CreateElement(QualifiedName.Component,Terms.sbolns)
-        xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-        (* Persistent Identity*)
-        let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-        perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-        xmlElement.AppendChild(perIdXml) |> ignore
-
-        (* Display Id*)
-        let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-        disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-        xmlElement.AppendChild(disIdXml) |> ignore
-
-        (* Version *)
-        let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-        verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-        xmlElement.AppendChild(verXml) |> ignore
-
-        (* Name *)
-        let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-        nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-        xmlElement.AppendChild(nameXml) |> ignore
-
-        (* Description *)
-        if x.description <> "" then
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-
-        (* Access *)
-        let accessXml = xdoc.CreateElement(QualifiedName.access,Terms.sbolns)
-        accessXml.SetAttribute("resource",Terms.rdfns,x.access) |> ignore
-        xmlElement.AppendChild(accessXml) |> ignore
-
-        (* Definition -> Basically a pointer to the Component Definition*)
-        let defnXml = xdoc.CreateElement(QualifiedName.definition, Terms.sbolns)
-        defnXml.SetAttribute("resource",Terms.rdfns,x.definition) |> ignore
-        xmlElement.AppendChild(defnXml) |> ignore
-
-        xmlElement
-
 let componentFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")
         let (name,displayId,version) = idFromXml(xElem)
@@ -232,50 +741,6 @@ let componentFromXml (xElem:XmlElement) =
 
         new Component(name,urlPrefix,displayId,version,access,definition)
 
-let serializeRange (xdoc:XmlDocument) (x:Range)=
-        
-        let xmlElement = xdoc.CreateElement(QualifiedName.Range,Terms.sbolns)
-        xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-        (* Persistent Identity*)
-        let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-        perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-        xmlElement.AppendChild(perIdXml) |> ignore
-
-        (* Display Id*)
-        let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-        disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-        xmlElement.AppendChild(disIdXml) |> ignore
-
-        (* Version *)
-        let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-        verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-        xmlElement.AppendChild(verXml) |> ignore
-
-        (* Name *)
-        (*let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-        nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-        xmlElement.AppendChild(nameXml) |> ignore*)
-
-        (* Description *)
-        if x.description <> "" then
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-
-        let startXml = xdoc.CreateElement(QualifiedName.startIndex,Terms.sbolns)
-        startXml.AppendChild(xdoc.CreateTextNode(x.startIndex.ToString())) |> ignore
-        xmlElement.AppendChild(startXml) |> ignore
-        
-        let endXml = xdoc.CreateElement(QualifiedName.endIndex, Terms.sbolns)
-        endXml.AppendChild(xdoc.CreateTextNode(x.endIndex.ToString())) |> ignore
-        xmlElement.AppendChild(endXml) |> ignore
-        
-        let orientationXml = xdoc.CreateElement(QualifiedName.orientation,Terms.sbolns)
-        orientationXml.SetAttribute("resource",Terms.rdfns,x.orientation)|> ignore
-        xmlElement.AppendChild(orientationXml) |> ignore 
-
-        xmlElement
 
 let rangeFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")
@@ -310,62 +775,7 @@ let rangeFromXml (xElem:XmlElement) =
         new Range(name,urlPrefix,displayId,version,(startIndex |> int),(endIndex |> int),orientation)
 
 
-let serializeLocation (xdoc:XmlDocument) (l:Location)  = 
-    match l with 
-    | Range(r) -> serializeRange xdoc r
 
-
-let rec addLocations location (xdoc:XmlDocument,xElement:XmlElement) = 
-            match location with 
-            | [] -> (xdoc,xElement)
-            | l:Location :: rlist -> 
-                let xmlLocation = xdoc.CreateElement(QualifiedName.locationProperty,Terms.sbolns)
-                xmlLocation.AppendChild(l |> serializeLocation xdoc) |> ignore
-                xElement.AppendChild(xmlLocation) |> ignore
-                addLocations rlist (xdoc,xElement)
-
-
-
-
-let serializeSequenceAnnotation (xdoc:XmlDocument) (x:SequenceAnnotation)=
-        let xmlElement = xdoc.CreateElement(QualifiedName.SequenceAnnotation,Terms.sbolns)
-        xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-        (* Persistent Identity*)
-        let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-        perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-        xmlElement.AppendChild(perIdXml) |> ignore
-
-        (* Display Id*)
-        let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-        disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-        xmlElement.AppendChild(disIdXml) |> ignore
-
-        (* Version *)
-        let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-        verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-        xmlElement.AppendChild(verXml) |> ignore
-
-        (* Name *)
-        let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-        nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-        xmlElement.AppendChild(nameXml) |> ignore
-
-        (* Description *)
-        if x.description <> "" then
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-
-        (* Component *)
-        let compXml = xdoc.CreateElement(QualifiedName.componentProperty,Terms.sbolns)
-        compXml.SetAttribute("resource",Terms.rdfns,x.componentObject.uri) |> ignore
-        xmlElement.AppendChild(compXml) |> ignore
-
-        (xdoc,xmlElement) = addLocations x.locations (xdoc,xmlElement) |> ignore
-
-
-        xmlElement
 
 let sequenceAnnotationFromXml (xElem:XmlElement) (components: ((string*Component) list)) = 
         let id = xElem.GetAttribute("about")
@@ -434,53 +844,6 @@ let rec AddSequenceAnnotations list (xdoc:XmlDocument,xElement:XmlElement) =
             xElement.AppendChild(saXml) |> ignore
             AddSequenceAnnotations remaining (xdoc,xElement)
 
-let serializeComponentDefinition (xdoc:XmlDocument) (x:ComponentDefinition)=
-    let xmlElement = xdoc.CreateElement(QualifiedName.ComponentDefinition,Terms.sbolns)
-    xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-    (* Persistent Identity*)
-    let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-    perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-    xmlElement.AppendChild(perIdXml) |> ignore
-
-    (* Display Id*)
-    let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-    disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-    xmlElement.AppendChild(disIdXml) |> ignore
-
-    (* Version *)
-    let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-    verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-    xmlElement.AppendChild(verXml) |> ignore
-
-    (* Name *)
-    let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-    nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-    xmlElement.AppendChild(nameXml) |> ignore
-
-    (* Description *)
-    if x.description <> "" then
-        let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-        descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-        xmlElement.AppendChild(descriptionXml) |> ignore
-
-    (* Sequence *)
-    
-    x.sequences 
-    |> List.iter (fun seq -> 
-        let seqXml = xdoc.CreateElement(QualifiedName.sequenceProperty,Terms.sbolns)
-        seqXml.SetAttribute("resource",Terms.rdfns,seq.uri) |> ignore
-        xmlElement.AppendChild(seqXml) |> ignore
-        )
-
-    (xdoc,xmlElement) = AddTypesAndRoles x.roles "roles" (xdoc,xmlElement) |> ignore
-    (xdoc,xmlElement) = AddTypesAndRoles x.types "types" (xdoc,xmlElement) |> ignore
-
-    (xdoc,xmlElement) = AddComponents x.components (xdoc,xmlElement) |> ignore
-    (xdoc,xmlElement) = AddSequenceAnnotations x.sequenceAnnotations (xdoc,xmlElement) |> ignore
-
-    xmlElement
-
 let componentDefinitionFromXml (xElem:XmlElement) (seqList: (string*Sequence) list) = 
     let id = xElem.GetAttribute("about")
     let (name,displayId,version) = idFromXml(xElem)
@@ -535,54 +898,6 @@ let componentDefinitionFromXml (xElem:XmlElement) (seqList: (string*Sequence) li
                  
     new ComponentDefinition(name,urlPrefix,displayId,version,typeList,roleList,sequences,components,saList)
 
-let serializeFunctionalComponent (xdoc:XmlDocument) (x:FunctionalComponent)=
-    let xmlElement = xdoc.CreateElement(QualifiedName.FunctionalComponent,Terms.sbolns)
-    xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-    
-    (* Persistent Identity*)
-    let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-    perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-    xmlElement.AppendChild(perIdXml) |> ignore
-    
-    (* Display Id*)
-    let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-    disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-    xmlElement.AppendChild(disIdXml) |> ignore
-    
-    (* Version *)
-    let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-    verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-    xmlElement.AppendChild(verXml) |> ignore
-    
-    (* Name *)
-    let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-    nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-    xmlElement.AppendChild(nameXml) |> ignore
-    
-    (* Description *)
-    if x.description <> "" then
-        let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-        descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-        xmlElement.AppendChild(descriptionXml) |> ignore
-    
-    (* Access *)
-    let accessXml = xdoc.CreateElement(QualifiedName.access,Terms.sbolns)
-    accessXml.SetAttribute("resource",Terms.rdfns,x.access) |> ignore
-    xmlElement.AppendChild(accessXml) |> ignore
-    
-    (* Definition -> Basically a pointer to the Component Definition*)
-    let defnXml = xdoc.CreateElement(QualifiedName.definition, Terms.sbolns)
-    defnXml.SetAttribute("resource",Terms.rdfns,x.definition) |> ignore
-    xmlElement.AppendChild(defnXml) |> ignore
-    
-    (* Direction -> Specifies if it is Input, Output, InOut or None*)
-    let dirXml = xdoc.CreateElement(QualifiedName.direction, Terms.sbolns)
-    dirXml.SetAttribute("resource",Terms.rdfns,x.direction) |> ignore
-    xmlElement.AppendChild(dirXml) |> ignore
-    
-    xmlElement
-
-
 let functionalComponentFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")
         let (name,displayId,version) = idFromXml(xElem)
@@ -616,55 +931,6 @@ let functionalComponentFromXml (xElem:XmlElement) =
         let direction = directionElem.GetAttribute("resource")
         new FunctionalComponent(name,urlPrefix,displayId,version,access,direction,definition)
 
-let rec addRoles rolesList (xdoc:XmlDocument,xElement:XmlElement) = 
-        match rolesList with
-        | [] -> (xdoc,xElement)
-        | role :: remaining -> 
-            let roleXml = xdoc.CreateElement(QualifiedName.role,Terms.sbolns)
-            roleXml.SetAttribute("resource",Terms.rdfns,role) |> ignore
-            xElement.AppendChild(roleXml) |> ignore
-            addRoles remaining (xdoc,xElement)
-
-let serializeParticipation (xdoc:XmlDocument) (x:Participation)=
-        let xmlElement = xdoc.CreateElement(QualifiedName.Participation,Terms.sbolns)
-        xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-        (* Persistent Identity*)
-        let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-        perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-        xmlElement.AppendChild(perIdXml) |> ignore
-
-        (* Display Id*)
-        let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-        disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-        xmlElement.AppendChild(disIdXml) |> ignore
-
-        (* Version *)
-        let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-        verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-        xmlElement.AppendChild(verXml) |> ignore
-
-        (* Name *)
-        let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-        nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-        xmlElement.AppendChild(nameXml) |> ignore
-
-        (* Description *)
-        if x.description <> "" then
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-        
-        (* Add all roles *)
-        (xdoc,xmlElement) = addRoles x.roles (xdoc,xmlElement) |> ignore
-
-        (* Participant -> Pointer to FunctionalComponent*)
-        let participantXml = xdoc.CreateElement(QualifiedName.participant,Terms.sbolns)
-        participantXml.SetAttribute("resource",Terms.rdfns,x.participant.uri) |> ignore
-        xmlElement.AppendChild(participantXml) |> ignore
-
-        xmlElement
-
 let participationFromXml (xElem:XmlElement) (fcomponentMap:((string*FunctionalComponent)list)) = 
     let id = xElem.GetAttribute("about")
     let (name,displayId,version) = idFromXml(xElem)
@@ -696,62 +962,6 @@ let participationFromXml (xElem:XmlElement) (fcomponentMap:((string*FunctionalCo
     new Participation(name,urlPrefix,displayId,version,roleList,fcomponents)
 
 
-let rec addTypes typesList (xdoc:XmlDocument,xElement:XmlElement) = 
-    match typesList with
-    | [] -> (xdoc,xElement)
-    | typeProperty :: remaining -> 
-        let typeXml = xdoc.CreateElement(QualifiedName.typeProperty,Terms.sbolns)
-        typeXml.SetAttribute("resource",Terms.rdfns,typeProperty) |> ignore
-        xElement.AppendChild(typeXml) |> ignore
-        addTypes remaining (xdoc,xElement)
-
-let rec addParticipations participations (xdoc:XmlDocument, xElement:XmlElement) =
-    match participations with 
-    | [] -> (xdoc,xElement)
-    | (participation:Participation) :: remaining ->
-        let participationXml = xdoc.CreateElement(QualifiedName.participationProperty,Terms.sbolns)
-        participationXml.AppendChild(serializeParticipation xdoc participation) |> ignore
-        xElement.AppendChild(participationXml) |> ignore
-        addParticipations remaining (xdoc,xElement) 
-
-let serializeInteraction (xdoc:XmlDocument) (x:Interaction)=
-    let xmlElement = xdoc.CreateElement(QualifiedName.Interaction,Terms.sbolns)
-    xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-    (* Persistent Identity*)
-    let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-    perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-    xmlElement.AppendChild(perIdXml) |> ignore
-
-    (* Display Id*)
-    let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-    disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-    xmlElement.AppendChild(disIdXml) |> ignore
-
-    (* Version *)
-    let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-    verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-    xmlElement.AppendChild(verXml) |> ignore
-
-    (* Name *)
-    let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-    nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-    xmlElement.AppendChild(nameXml) |> ignore
-
-    (* Description *)
-    if x.description <> "" then
-        let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-        descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-        xmlElement.AppendChild(descriptionXml) |> ignore
-
-    (* Add types *)
-    (xdoc,xmlElement) = addTypes x.types (xdoc,xmlElement) |> ignore
-
-    (* Add participations *)
-    (xdoc, xmlElement) = addParticipations x.participations (xdoc,xmlElement) |> ignore
-
-    xmlElement
-
 
 let interactionFromXml (xElem:XmlElement) (fcomponentMap:(string*FunctionalComponent)list) =
     let id = xElem.GetAttribute("about")
@@ -782,62 +992,6 @@ let interactionFromXml (xElem:XmlElement) (fcomponentMap:(string*FunctionalCompo
                                     participationFromXml participationVal fcomponentMap
                                 | _ -> failwith "Unexpected XML Node encountered")
     new Interaction(name,urlPrefix,displayId,version,typeList,participationList)
-
-let rec addFunctionalComponents fclist (xdoc:XmlDocument,xElement:XmlElement) =
-    match fclist with
-    | [] -> (xdoc,xElement)
-    | (fc:FunctionalComponent) :: remaining -> 
-        let fcXml = xdoc.CreateElement(QualifiedName.functionalComponentProperty,Terms.sbolns)
-        fcXml.AppendChild(serializeFunctionalComponent xdoc fc) |> ignore
-        xElement.AppendChild(fcXml) |> ignore
-        addFunctionalComponents remaining (xdoc,xElement)
-
-let rec addInteractions intList (xdoc:XmlDocument, xElement:XmlElement) = 
-    match intList with 
-    | [] -> (xdoc,xElement)
-    | (interaction:Interaction) :: remaining -> 
-        let intXml = xdoc.CreateElement(QualifiedName.interactionProperty, Terms.sbolns)
-        intXml.AppendChild(serializeInteraction xdoc interaction) |> ignore
-        xElement.AppendChild(intXml) |> ignore
-        addInteractions remaining (xdoc,xElement)
-
-let serializeModuleDefinition (xdoc:XmlDocument) (x:ModuleDefinition)=
-    let xmlElement = xdoc.CreateElement(QualifiedName.ModuleDefinition,Terms.sbolns)
-    xmlElement.SetAttribute("about",Terms.rdfns,x.uri) |> ignore
-
-    (* Persistent Identity*)
-    let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-    perIdXml.SetAttribute("resource",Terms.rdfns,x.persistentIdentity) |> ignore
-    xmlElement.AppendChild(perIdXml) |> ignore
-
-    (* Display Id*)
-    let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-    disIdXml.AppendChild(xdoc.CreateTextNode(x.displayId)) |> ignore
-    xmlElement.AppendChild(disIdXml) |> ignore
-
-    (* Version *)
-    let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-    verXml.AppendChild(xdoc.CreateTextNode(x.version)) |> ignore
-    xmlElement.AppendChild(verXml) |> ignore
-
-    (* Name *)
-    let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-    nameXml.AppendChild(xdoc.CreateTextNode(x.name)) |> ignore
-    xmlElement.AppendChild(nameXml) |> ignore
-
-    (* Description *)
-    if x.description <> "" then
-        let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-        descriptionXml.AppendChild(xdoc.CreateTextNode(x.description)) |> ignore
-        xmlElement.AppendChild(descriptionXml) |> ignore
-
-    (* Interactions *)
-    (xdoc,xmlElement) = addInteractions x.interactions (xdoc,xmlElement) |> ignore
-
-    (* Functional Components *)
-    (xdoc,xmlElement) = addFunctionalComponents x.functionalComponents (xdoc,xmlElement) |> ignore
-
-    xmlElement
 
 let moduleDefinitionFromXml (xElem:XmlElement) =
     let id = xElem.GetAttribute("about")
@@ -875,28 +1029,6 @@ let moduleDefinitionFromXml (xElem:XmlElement) =
                        )
 
     new ModuleDefinition(name,urlPrefix,displayId,version,fcs,interactions)
-
-
-
-
-
-
-let serializeSBOLDocument (x:SBOLDocument) = 
-    let xdoc = new XmlDocument();
-    let rootXml = xdoc.CreateElement(QualifiedName.rdfQN,Terms.rdfns) 
-    xdoc.AppendChild(rootXml) |> ignore
-    xdoc.DocumentElement.SetAttribute(QualifiedName.sbolQN,Terms.sbolns)
-    xdoc.DocumentElement.SetAttribute(QualifiedName.dctermsQN,Terms.dctermsns)
-    xdoc.DocumentElement.SetAttribute(QualifiedName.provQN,Terms.provns)
-    xdoc.AppendChild(rootXml) |> ignore
-    x.collection |> List.iter(fun coll -> 
-        match coll with
-        | ModuleDefinition(md:ModuleDefinition) -> rootXml.AppendChild(serializeModuleDefinition xdoc md) |> ignore
-        | ComponentDefinition(cd:ComponentDefinition) -> rootXml.AppendChild(serializeComponentDefinition xdoc cd) |> ignore
-        | Sequence(seq:Sequence) -> rootXml.AppendChild(serializeSequence xdoc seq) |> ignore
-        
-    ) 
-    xdoc
 
 let SBOLDocumentFromXML (xdoc:XmlDocument) =
     let rootXml = xdoc.FirstChild 

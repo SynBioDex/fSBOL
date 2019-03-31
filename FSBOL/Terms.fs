@@ -4,6 +4,7 @@ module FSBOL.Terms
 let so = "http://identifiers.org/so/"
 let sbo = "http://identifiers.org/biomodels.sbo/"
 
+let ns0 = "http://sbol.org/annotations/"
 let sbolns = "http://sbols.org/v2#"
 let dctermsns = "http://purl.org/dc/terms/"
 let rdfns = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"

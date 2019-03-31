@@ -6,7 +6,20 @@ open FSBOL.SequenceAnnotation
 open FSBOL.SequenceConstraint
 open FSBOL.Sequence
 open FSBOL.Role
-open FSBOL.ComponentDefinitionType
+
+type ComponentDefinitionType = 
+    | DNA
+    | RNA
+    | Protein
+    | SmallMolecule
+    | Complex
+    | Linear
+    | Circular
+    | SingleStranded
+    | DoubleStranded
+    | OtherType of string
+    static member fromURI: string -> ComponentDefinitionType 
+    static member toURI:ComponentDefinitionType -> string
 
 type ComponentDefinition = 
     inherit TopLevel

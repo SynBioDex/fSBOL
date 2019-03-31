@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Compile Include="Sample.fs" />
-    <Compile Include="Main.fs" />
 	<None Include="paket.references" />
   </ItemGroup>
 

@@ -61,13 +61,20 @@ type SBOLDocument (collection:TopLevel list) =
                        | :? Model as x -> Some(x)
                        | _ -> None)
     
-    let cdSequences = cdlist 
-                      |> List.map(fun x -> x.sequences) 
-                      |> List.reduce(fun a b -> a@b)
+    let cdSequences = 
+        let list = cdlist |> List.map(fun x -> x.sequences)
+        match list with 
+        | [] -> []
+        | [a] -> a
+        | _ -> list |> List.reduce(fun a b -> a@b)
+                      
         
-    let mdModels = mdlist 
-                   |> List.map(fun x -> x.models) 
-                   |> List.reduce(fun a b -> a@b)
+    let mdModels = 
+        let list = mdlist |> List.map(fun x -> x.models)
+        match list with 
+        | [] -> []
+        | [a] -> a
+        | _ -> list |> List.reduce(fun a b -> a@b)
 
     let collectionList = collection 
                          |> List.choose(fun elem -> 
@@ -91,9 +98,6 @@ type SBOLDocument (collection:TopLevel list) =
     member sbol.implementations = implementionList
 
     (* *)
-    member sbol.collections = collectionList
-
-    (* *)
     member sbol.sequences = topSequences@cdSequences 
                             |> List.map (fun x -> x.uri,x) 
                             |> Map.ofList 
@@ -105,3 +109,6 @@ type SBOLDocument (collection:TopLevel list) =
                             |> Map.ofList 
                             |> Map.toList 
                             |> List.map (fun (_,value) -> value)
+    
+    (* *)
+    member sbol.collections = collectionList
