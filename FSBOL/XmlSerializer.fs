@@ -876,41 +876,91 @@ let componentFromXml (xElem:XmlElement) =
     let x = Component(uri,name,displayId,version,persistentId,definition,access,mapsTos,roles,roleIntegrations)
     addAnnotations x uriAnnotations stringAnnotations description
     x      
-(*
 
+let locationFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml(xElem,childXmlElements)
 
-
-let componentFromXml (xElem:XmlElement) = 
-        let id = xElem.GetAttribute("about")
-        let (name,displayId,version) = idFromXml(xElem)
-        let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
+    let orientationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.orientationProperty)
+    
+    let orientation = 
+        match orientationList with 
+        | [] -> failwith "Property orientation is required in a Location"
+        | [x] -> Orientation.fromURI(x.GetAttribute("resource"))
+        | _ -> failwith "Too many orientation properties encountered in Location"
+    
         
-        let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+    (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation)
+
+let rangeFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
                                |> List.map(fun index -> xElem.ChildNodes.Item(index)))
                                |> List.filter(fun item -> 
                                     match item with 
                                     | :? XmlElement -> true
                                     | _ -> false)
-                                |> List.map (fun item -> 
-                                    (downcast item:XmlElement))
-        let accessList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.access)
-        let definitionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.definition)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
 
-        if accessList.Length <> 1 then
-            failwith "Malformed SBOL XML. Too many or too few access properties"
-        if definitionList.Length <> 1 then 
-            failwith "Malformed SBOL XML. Too many or too few definition properties"
+    let startList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.startIndexProperty)
+    let endList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.startIndexProperty)
+    
+    let startIndex = 
+        match startList with 
+            | [] -> failwith "Property startIndex is required in a Range"
+            | [x] -> Convert.ToInt32(x.InnerText)
+            | _ -> failwith "Too many startIndex properties encountered in Range"
+    let endIndex = 
+        match endList with 
+            | [] -> failwith "Property endIndex is required in a Range"
+            | [x] -> Convert.ToInt32(x.InnerText)
+            | _ -> failwith "Too many endIndex properties encountered in Range"
+    
+    let x = Range(uri,name,displayId,version,persistentId,orientation,startIndex,endIndex)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x  
 
-        if definitionList.Length <> 1 then 
-            failwith "Malformed SBOL XML. Too many or too few definition properties"
+let cutFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
 
-        let accessElem = accessList.Item(0)
-        let access = accessElem.GetAttribute("resource")
-        
-        let definitionElem = definitionList.Item(0)
-        let definition = definitionElem.GetAttribute("resource")
+    let atList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.atProperty)
+    
+    let atIndex = 
+        match atList with 
+            | [] -> failwith "Property at is required in a Cut"
+            | [x] -> Convert.ToInt32(x.InnerText)
+            | _ -> failwith "Too many at properties encountered in Cut"
+    
+    let x = Cut(uri,name,displayId,version,persistentId,orientation,atIndex)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x  
 
-        new Component(name,urlPrefix,displayId,version,access,definition)
+let genericLocationFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
+
+    
+    let x = GenericLocation(uri,name,displayId,version,persistentId,orientation)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x 
+
+
+(*
+
+
+
 
 
 let rangeFromXml (xElem:XmlElement) = 
