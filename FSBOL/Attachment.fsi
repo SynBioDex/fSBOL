@@ -5,7 +5,7 @@ open FSBOL.TopLevel
 type Attachment = 
     inherit TopLevel
 
-    new : uri:string * name:string option * displayId:string option * version:string option * persistantId:string option * attachments:string list * source:string * format:string option * size: int64 option * hash:string option -> Attachment
+    new : uri:string * name:string option * displayId:string option * version:string option * persistentId:string option * attachments:string list * source:string * format:string option * size: int64 option * hash:string option -> Attachment
 
     member source:string
 

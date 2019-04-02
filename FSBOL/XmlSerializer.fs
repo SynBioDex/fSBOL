@@ -27,7 +27,7 @@ open FSBOL.Implementation
 open FSBOL.TopLevel
 open FSBOL.SBOLDocument
 
-
+open System
 open System.Xml
 open System.IO
 open System.Text
@@ -636,78 +636,249 @@ let sbolToXml (sbol:SBOLDocument) =
 
 
 (* From XML Methods *)
-let idFromXml (xElem:XmlElement) = 
-        let idval = xElem.GetAttribute("about")
-        //let displayIdXmlList = xElem.ChildNodes..GetElementsByTagName(QualifiedName.displayId)
-        
-        let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                                |> List.map (fun item -> 
-                                    (downcast item:XmlElement))
+let identifiersFromXml (xElem:XmlElement,childXmlElements:XmlElement list) = 
+    let uri = xElem.GetAttribute("about")
+    
+    let displayIdXmlList = childXmlElements 
+                           |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.displayId))
+    
+    let displayId = 
+        match displayIdXmlList with 
+        | [] -> None 
+        | [d] -> Some(d.InnerText)
+        | _ -> failwith "Too many Description fields"
+    
+    let nameXmlList = childXmlElements 
+                      |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.name))
+    
+    let name = 
+        match nameXmlList with 
+        | [] -> None
+        | [n] -> Some(n.InnerText)
+        | _ -> failwith "Too many Name fields"
+    
+    let versionXmlList = childXmlElements 
+                         |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.version))
+    
+    let version = 
+        match versionXmlList with 
+        | [] -> None
+        | [v] -> Some(v.InnerText)
+        | _ -> failwith "Too many Version fields"
 
-        let displayIdXmlList = childXmlElements 
-                               |> List.filter(fun xmlElem -> 
-                                    (xmlElem.Name = QualifiedName.displayId))
+    let persistentIdXmlList = childXmlElements 
+                              |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.persistentIdentity))
+    
+    let persistentId = 
+        match persistentIdXmlList with 
+        | [] -> None
+        | [pid] -> Some(pid.GetAttribute("resource"))
+        | _ -> failwith "Too many Persistent Identity fields."
+    
+    let descriptionXmlList = childXmlElements 
+                             |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.description))
+    let description = 
+        match descriptionXmlList with 
+        | [] -> None
+        | [desc] -> Some(desc.InnerText)
+        | _ -> failwith "Too many Description fields."
+    (uri,name,displayId,version,persistentId,description,[],[])
 
-        if displayIdXmlList.Length <> 1 then
-            failwith "Malformed SBOL XML. Too many or too few Display Id properties"
-        let displayId = displayIdXmlList.Item(0).InnerText
+let addAnnotations (id:Identifiers) (uriAnnotations:(string*string) list) (stringAnnotations:(string*string) list) (d:string option)= 
+    uriAnnotations |> List.iter(fun (k,v) -> id.addUriAnnotation(k,v))
+    stringAnnotations |> List.iter(fun (k,v) -> id.addStringAnnotation(k,v))
+    id.description <- d
+    
+let topLevelFromXml (xElem:XmlElement,childXmlElements:XmlElement list) = 
+    
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml(xElem,childXmlElements)
+    let attchXmlList = childXmlElements 
+                       |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.attachmentProperty))
+    let attachments = attchXmlList |> List.map (fun x -> x.GetAttribute("resource"))         
+    (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations)
 
-        let nameXmlList = childXmlElements 
-                               |> List.filter(fun xmlElem -> 
-                                    (xmlElem.Name = QualifiedName.name))
-        let name = match nameXmlList.Length with 
-                   | 1 -> nameXmlList.Item(0).InnerText
-                   | _ -> displayId
 
-
-        let versionXmlList = childXmlElements 
-                               |> List.filter(fun xmlElem -> 
-                                    (xmlElem.Name = QualifiedName.version))
-
-        if versionXmlList.Length <> 1 then
-            failwith "Malformed SBOL XML. Too many or too few Version properties"
-        let version = versionXmlList.Item(0).InnerText
-        (name,displayId,version)
-
-        (*
 let sequenceFromXml (xElem:XmlElement) = 
-        let id = xElem.GetAttribute("about")
-        let (name,displayId,version) = idFromXml(xElem)
-        let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
-        
         let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
                                |> List.map(fun index -> xElem.ChildNodes.Item(index)))
                                |> List.filter(fun item -> 
                                     match item with 
                                     | :? XmlElement -> true
                                     | _ -> false)
-                                |> List.map (fun item -> 
-                                    (downcast item:XmlElement))
-        let encodingList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.encoding)
-        let elementsList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.elements)
-
-        if encodingList.Length <> 1 then
-            failwith "Malformed SBOL XML. Too many or too few Encoding properties"
-        if elementsList.Length <> 1 then 
-            failwith "Malformed SBOL XML. Too many or too few Elements properties"
-
-        if elementsList.Length <> 1 then 
-            failwith "Malformed SBOL XML. Too many or too few Elements properties"
-
-        let encodingElem = encodingList.Item(0)
-        let encoding = encodingElem.GetAttribute("resource")
+                               |> List.map (fun item -> (downcast item:XmlElement))
+        let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml(xElem,childXmlElements)
         
         
 
-        let elementsElem = elementsList.Item(0)
-        let elements = elementsElem.InnerText
+        let encodingList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.encodingProperty)
+        let elementsList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.elementsProperty)
 
-        new Sequence(name,urlPrefix,displayId,version,elements,Encoding.fromString(encoding))
+        let elements = 
+            match elementsList with 
+            | [] -> failwith "Elements is a required field in a Sequence"
+            | [e] -> e.InnerText
+            | _ -> failwith "Too many Elements found"
+        
+        let encoding = 
+            match encodingList with 
+            | [] -> failwith "Encoding is a required field in a Sequence"
+            | [e] -> e.GetAttribute("resource")
+            | _ -> failwith "Too many Encoding properties found"
+
+        let x = new Sequence(uri,name,displayId,version,persistentId,attachments,elements,Encoding.fromURI(encoding))
+        addAnnotations x uriAnnotations stringAnnotations description
+        x
+
+let attachmentFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml(xElem,childXmlElements)
+    
+    let sourceList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sourceProperty)
+    let formatList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.formatProperty)
+    let sizeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sizeProperty)
+    let hashList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.hashProperty)
+
+    let source = 
+        match sourceList with 
+        | [] -> failwith "Source cannot be empty in Attachment"
+        | [s] -> s.GetAttribute("resource")
+        | _ -> failwith "Too many source fields encountered in Attachment"
+    
+    let format = 
+       match formatList with 
+        | [] -> None
+        | [s] -> Some(s.GetAttribute("resource"))
+        | _ -> failwith "Too many format fields encountered in Attachment" 
+    
+    let size = 
+       match sizeList with 
+        | [] -> None
+        | [s] -> Some(Convert.ToInt64(s.InnerText))
+        | _ -> failwith "Too many size fields encountered in Attachment" 
+    
+    let hash = 
+       match hashList with 
+        | [] -> None
+        | [s] -> Some(s.InnerText)
+        | _ -> failwith "Too many size fields encountered in Attachment" 
+    
+    let x = Attachment(uri,name,displayId,version,persistentId,attachments,source,format,size,hash)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let collectionFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml(xElem,childXmlElements)
+    
+    let collectionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.memberProperty)
+    let collection = collectionList |> List.map (fun x -> x.GetAttribute("resource"))
+        
+    let x = Collection(uri,name,displayId,version,persistentId,attachments,collection)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x    
+
+let mapsToFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml(xElem,childXmlElements)
+    
+    let refinementList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.refinementProperty)
+    let localList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.localProperty)
+    let remoteList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.remoteProperty)
+    
+    let local = 
+        match localList with 
+        | [] -> failwith "Property local is required in MapsTo"
+        | [x] -> x.GetAttribute("resource")
+        | _ -> failwith "Too many local properties encountered in MapsTo"
+    
+    let remote = 
+        match remoteList with 
+        | [] -> failwith "Property remote is required in MapsTo"
+        | [x] -> x.GetAttribute("resource")
+        | _ -> failwith "Too many remote properties encountered in MapsTo"
+    
+    let refinement = 
+        match refinementList with 
+        | [] -> failwith "Property refinement is required in MapsTo"
+        | [x] -> Refinement.fromURI(x.GetAttribute("resource"))
+        | _ -> failwith "Too many refinement properties encountered in MapsTo"
+    
+
+    let x = MapsTo(uri,name,displayId,version,persistentId,local,remote,refinement)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x  
+
+let componentInstanceFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
+    
+    let definitionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.definitionProperty)
+    let accessList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.accessProperty)
+    let mapsTosList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.mapsToProperty)
+    
+    let definition = 
+        match definitionList with 
+        | [] -> failwith "Property definition is required in a ComponentInstance"
+        | [x] -> x.GetAttribute("resource")
+        | _ -> failwith "Too many definition properties encountered in ComponentInstance"
+    
+    let access = 
+        match accessList with 
+        | [] -> failwith "Property access is required in ComponentInstance"
+        | [x] -> Access.fromURI(x.GetAttribute("resource"))
+        | _ -> failwith "Too many access properties encountered in ComponentInstance"
+    
+    let mapsTos = 
+        mapsTosList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                mapsToFromXml elem
+            | _ -> failwith "Unexpected Xml Node encountered")
+        
+    (definition,access,mapsTos)
+
+let componentFromXml (xElem:XmlElement) = 
+    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml(xElem,childXmlElements)
+    let (definition,access,mapsTos) = componentInstanceFromXml xElem childXmlElements
+    let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
+    let roleIntegrationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleIntegrationProperty)
+    
+    let roles = roleList |> List.map (fun x -> Role.fromURI(x.GetAttribute("resource")))
+        
+    let roleIntegrations = roleIntegrationList |> List.map (fun x -> RoleIntegration.fromURI(x.GetAttribute("resource")))
+        
+
+    let x = Component(uri,name,displayId,version,persistentId,definition,access,mapsTos,roles,roleIntegrations)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x      
+(*
+
+
 
 let componentFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")

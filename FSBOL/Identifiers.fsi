@@ -8,7 +8,7 @@ open System.Collections.Generic
 [<AbstractClass>]
 type Identifiers = 
          
-    new: uri:string * name:string option * displayId:string option * version:string option * persistantId:string option -> Identifiers
+    new: uri:string * name:string option * displayId:string option * version:string option * persistentId:string option -> Identifiers
     
     /// Unique URI that identifies the object
     member uri:string

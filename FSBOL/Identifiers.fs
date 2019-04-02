@@ -3,7 +3,7 @@ module FSBOL.Identifiers
 open System.Collections.Generic
 
 [<AbstractClass>]
-type Identifiers(uri:string, name:string option, displayId:string option, version:string option, persistantId:string option) = 
+type Identifiers(uri:string, name:string option, displayId:string option, version:string option, persistentId:string option) = 
 
     /// Version of the object
     member i.version = version
@@ -15,7 +15,7 @@ type Identifiers(uri:string, name:string option, displayId:string option, versio
     member i.displayId = displayId
 
     /// Indentity shared by multiple versions of the same object 
-    member i.persistentIdentity = persistantId
+    member i.persistentIdentity = persistentId
     
     /// Unique URI that identifies the object
     member i.uri = uri
