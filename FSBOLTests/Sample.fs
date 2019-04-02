@@ -21,7 +21,15 @@ let tests =
 
       let sbol = new SBOLDocument([seq])
 
-      let str = XmlSerializer.sbol_to_Xml_string (XmlSerializer.sbolToXml sbol)
+      let xml = XmlSerializer.sbolToXml sbol
+      let str = XmlSerializer.sbol_to_Xml_string xml
+
+      let rootXml = xml.FirstChild
+      let (rootElem:XmlElement) = (downcast rootXml: XmlElement)
+      let seqNodeList = rootElem.GetElementsByTagName(QualifiedName.Sequence)
+      let seq = seqNodeList.Item(0)
+      let (seqXml:XmlElement) = (downcast seq:XmlElement)
+      let uri = seqXml.GetAttribute("about")
 
       let check = true
       Expect.isTrue check "Well, this was unexpected."
