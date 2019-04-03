@@ -19,4 +19,4 @@ type Sequence =
     member elements:string
 
     (**) 
-    member encoding:string
+    member encoding:Encoding

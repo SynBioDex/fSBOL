@@ -33,7 +33,7 @@ open System.IO
 open System.Text
 
 /// To XML string
-let sbol_to_Xml_string (xdoc:XmlDocument) = 
+let sbol_to_XmlString (xdoc:XmlDocument) = 
     let sw = new StringWriter()
     let xwSettings = new XmlWriterSettings()
     xwSettings.Indent <- true
@@ -131,7 +131,7 @@ let sequenceToXml (xdoc:XmlDocument) (x:Sequence)=
 
     (* Sequence Encoding *)
     let encodingXml = xdoc.CreateElement(QualifiedName.encodingProperty,Terms.sbolns)
-    encodingXml.SetAttribute("resource",Terms.rdfns,x.encoding) |> ignore
+    encodingXml.SetAttribute("resource",Terms.rdfns,Encoding.toURI (x.encoding)) |> ignore
     xmlElement.AppendChild(encodingXml) |> ignore
 
     xmlElement
@@ -1274,8 +1274,6 @@ let moduleDefinitionFromXml (xElem:XmlElement) (mlist:Model list)=
     let moduleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.moduleProperty)
     let modelList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.modelProperty)
     
-    
-    
     let roles = roleList |> List.map (fun x -> Role.fromURI (x.GetAttribute("resource")))
 
     let functionalComponents = 
@@ -1305,8 +1303,6 @@ let moduleDefinitionFromXml (xElem:XmlElement) (mlist:Model list)=
                 moduleFromXml elem 
             | _ -> failwith "Unexpected Xml Node encountered")
     
-
-
     let models = 
         modelList
         |> List.map(fun x -> x.GetAttribute("resource"))
@@ -1321,194 +1317,84 @@ let moduleDefinitionFromXml (xElem:XmlElement) (mlist:Model list)=
     addAnnotations x uriAnnotations stringAnnotations description
     x
 
-(*
 
+let implementationFromXml (xElem:XmlElement) (clist:ComponentDefinition list) (mlist:ModuleDefinition list) = 
+    let childXmlElements =getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
 
-
-let functionalComponentFromXml (xElem:XmlElement) = 
-        let id = xElem.GetAttribute("about")
-        let (name,displayId,version) = idFromXml(xElem)
-        let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
-        let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                                |> List.map (fun item -> 
-                                    (downcast item:XmlElement))
-
-        let accessNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.access)
-        if accessNodeList.Length <> 1 then
-            failwith "Wrong number of access Nodes"
-        let accessElem = accessNodeList.Item(0)
-        let access = accessElem.GetAttribute("resource")
-
-        let definitionNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.definition)
-        if definitionNodeList.Length <> 1 then
-            failwith "Wrong number of definition Nodes"
-        let definitionElem = definitionNodeList.Item(0)
-        let definition = definitionElem.GetAttribute("resource")
-        
-        let directionNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.direction)
-        if directionNodeList.Length <> 1 then
-            failwith "Wrong number of direction Nodes"
-        
-        let directionElem = directionNodeList.Item(0)
-        let direction = directionElem.GetAttribute("resource")
-        new FunctionalComponent(name,urlPrefix,displayId,version,access,direction,definition)
-
-let participationFromXml (xElem:XmlElement) (fcomponentMap:((string*FunctionalComponent)list)) = 
-    let id = xElem.GetAttribute("about")
-    let (name,displayId,version) = idFromXml(xElem)
-    let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
+    let builtList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.builtProperty)
     
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                           |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                           |> List.filter(fun item -> 
-                                match item with 
-                                | :? XmlElement -> true
-                                | _ -> false)
-                            |> List.map (fun item -> 
-                                (downcast item:XmlElement))
-
-    let roleNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.role)
-    let roleList = [0..(roleNodeList.Length-1)] 
-                   |> List.map(fun index -> 
-                     let roleElem = roleNodeList.Item(index)
-                     roleElem.GetAttribute("resource"))
-    let participantNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.participant)
-    if participantNodeList.Length <> 1 then 
-        failwith "Wrong number of participant nodes found"
     
-    let fcomponents = 
-        let participantElem = participantNodeList.Item(0)
-        match fcomponentMap |> List.tryFind (fun (url,fcomponent) -> url = participantElem.GetAttribute("resource")) with 
-        | Some(_,fcomp) -> fcomp
-        | None -> failwith "Functional Component not found in SBOL Document"
-    new Participation(name,urlPrefix,displayId,version,roleList,fcomponents)
+    let built = 
+        match builtList with 
+        | [] -> None
+        | [s] -> 
+            let id = s.GetAttribute("resource")
+            match clist |> List.tryFind(fun x -> x.uri = id) with 
+            | Some(c) -> Some(CD(c))
+            | None -> 
+                match mlist |> List.tryFind(fun y -> y.uri = id) with 
+                | Some(m) -> Some(MD(m))
+                | None -> failwith "ModuleDefinition or ComponentDefinition not defined"
+        | _ -> failwith "Too many built properties found in Implementation"          
 
+    let x = Implementation(uri,name,displayId,version,persistentId,attachments,built)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
 
-
-let interactionFromXml (xElem:XmlElement) (fcomponentMap:(string*FunctionalComponent)list) =
-    let id = xElem.GetAttribute("about")
-    let (name,displayId,version) = idFromXml(xElem)
-    let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                           |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                           |> List.filter(fun item -> 
-                                match item with 
-                                | :? XmlElement -> true
-                                | _ -> false)
-                            |> List.map (fun item -> 
-                                (downcast item:XmlElement))
-    let typeNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.typeProperty)
-    let typeList = [0..(typeNodeList.Length-1)] 
-                   |> List.map(fun index -> 
-                     let typeElem = typeNodeList.Item(index)
-                     typeElem.GetAttribute("resource"))
-
-    let participationNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.participationProperty)
-    let participationList = [0..(participationNodeList.Length-1)] 
-                            |> List.map (fun index -> 
-                                let participationProperty = participationNodeList.Item(index)
-                                let participationValNode = participationProperty.FirstChild
-                                match participationValNode with 
-                                | :? XmlElement -> 
-                                    let (participationVal:XmlElement) = (downcast participationValNode:XmlElement)
-                                    participationFromXml participationVal fcomponentMap
-                                | _ -> failwith "Unexpected XML Node encountered")
-    new Interaction(name,urlPrefix,displayId,version,typeList,participationList)
-
-let moduleDefinitionFromXml (xElem:XmlElement) =
-    let id = xElem.GetAttribute("about")
-    let (name,displayId,version) = idFromXml(xElem)
-    let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                           |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                           |> List.filter(fun item -> 
-                                match item with 
-                                | :? XmlElement -> true
-                                | _ -> false)
-                            |> List.map (fun item -> 
-                                (downcast item:XmlElement))
-
-    let fcList =  childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.functionalComponentProperty)
-    let fcs = [0..(fcList.Length-1)] |> List.map( fun index -> 
-                let prop = fcList.Item(index)
-                let valueNode = prop.FirstChild
-                match valueNode with 
-                | :? XmlElement -> 
-                    let (value:XmlElement) = (downcast valueNode:XmlElement)
-                    functionalComponentFromXml value
-                | _ -> failwith "Unexpected XML Node encountered"
-              )
-    
-    let interactionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.interactionProperty)
-    let interactions = [0..(interactionList.Length-1)] |> List.map( fun index -> 
-                         let prop = interactionList.Item(index)
-                         let valueNode = prop.FirstChild
-                         match valueNode with 
-                         | :? XmlElement -> 
-                             let (value:XmlElement) = (downcast valueNode:XmlElement)
-                             interactionFromXml value (fcs |> List.map (fun x -> (x.uri,x)))
-                         | _ -> failwith "Unexpected XML Node encountered"
-                       )
-
-    new ModuleDefinition(name,urlPrefix,displayId,version,fcs,interactions)
-
-let SBOLDocumentFromXML (xdoc:XmlDocument) =
-    let rootXml = xdoc.FirstChild 
+let sbolFromXML (xdoc:XmlDocument) = 
+    let rootXml = xdoc.FirstChild
     match rootXml with 
     | :? XmlElement -> 
         let (rootElem:XmlElement) = (downcast rootXml: XmlElement)
-        let cdNodeList = rootElem.GetElementsByTagName(QualifiedName.ComponentDefinition)
-        let mdNodeList = rootElem.GetElementsByTagName(QualifiedName.ModuleDefinition)
-        let seqNodeList = rootElem.GetElementsByTagName(QualifiedName.Sequence)
-
-        let seqs = 
-            [0..(seqNodeList.Count-1)] |> List.map(fun index ->
-            let item = seqNodeList.Item(index) 
-            match item with 
-            | :? XmlElement ->
-                let (seqXmlElem:XmlElement) = (downcast item:XmlElement)
-                sequenceFromXml seqXmlElem
-            | _ -> failwith "Unexpected XML Node encountered")
-        let seqTopLevel = seqs |> List.map (fun seq -> Sequence(seq))
+        let childXmlElements =getChildXmlElements rootElem
+        let sequences = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.Sequence)
+            |> List.map (fun x -> (sequenceFromXml x)) 
+        let models = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.Model)
+            |> List.map (fun x -> (modelFromXml x)) 
+        let componentDefinitions = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.ComponentDefinition)
+            |> List.map (fun x -> (componentDefinitionFromXml x sequences)) 
         
-        let cds = 
-            [0..(cdNodeList.Count-1)] |> List.map(fun index -> 
-            let item = cdNodeList.Item(index)
-            match item with 
-            | :? XmlElement -> 
-                let (cdXmlElem:XmlElement) = (downcast item:XmlElement)
-                componentDefinitionFromXml cdXmlElem (seqs |> List.map (fun x -> (x.uri,x)))
-            | _ -> failwith "Unexpected XML Node encountered"
-            )
-        let cdTopLevel = cds |> List.map(fun cd -> ComponentDefinition(cd))
+        let moduleDefinitions = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.ModuleDefinition)
+            |> List.map (fun x -> (moduleDefinitionFromXml x models)) 
         
-        let mds = 
-            [0..(mdNodeList.Count-1)] |> List.map(fun index -> 
-            let item = mdNodeList.Item(index)
-            match item with 
-            | :? XmlElement -> 
-                let (mdXmlElem:XmlElement) = (downcast item:XmlElement)
-                moduleDefinitionFromXml mdXmlElem 
-            | _ -> failwith "Unexpected XML Node encountered"
-            )
-        let mdTopLevel = mds |> List.map(fun md -> ModuleDefinition(md))
+        let attachments = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.Attachment)
+            |> List.map (fun x -> (attachmentFromXml x)) 
+        
+        let collections = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.Collection)
+            |> List.map (fun x -> (collectionFromXml x)) 
+        
+        let combinatorialDerivations = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.CombinatorialDerivation)
+            |> List.map (fun x -> (combinatorialDerivationFromXml x)) 
+        
+        let implementations = 
+            childXmlElements 
+            |> List.filter (fun elem -> elem.Name = QualifiedName.Implementation)
+            |> List.map (fun x -> (implementationFromXml x componentDefinitions moduleDefinitions)) 
 
-        SBOLDocument(seqTopLevel@cdTopLevel@mdTopLevel)
-    | _ -> failwith "Unexpected XML Node encountered"
-
-let sbolXmlString (x:SBOLDocument) = 
-    let sw = new StringWriter()
-    let xwSettings = new XmlWriterSettings()
-    xwSettings.Indent <- true
-    xwSettings.Encoding <- Encoding.UTF8
-    let xw = XmlWriter.Create(sw,xwSettings)
-    let xd = serializeSBOLDocument x
-    (serializeSBOLDocument x).WriteTo(xw)
-    xw.Close()
-    sw.ToString()
-  *)
+        let collection = 
+            (collections |> List.map (fun x -> x :> TopLevel))
+            @ (attachments |> List.map (fun x -> x :> TopLevel))
+            @ (sequences |> List.map (fun x -> x :> TopLevel))
+            @ (componentDefinitions |> List.map (fun x -> x :> TopLevel))
+            @ (models |> List.map (fun x -> x :> TopLevel))
+            @ (moduleDefinitions |> List.map (fun x -> x :> TopLevel))
+            @ (combinatorialDerivations |> List.map (fun x -> x :> TopLevel))
+            @ (implementations |> List.map (fun x -> x :> TopLevel))
+            
+        SBOLDocument(collection)
+    | _ -> failwith "Unknown XML format"

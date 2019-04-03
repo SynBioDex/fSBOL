@@ -25,12 +25,7 @@ type Sequence(uri:string,name:string option, displayId:string option, version:st
 
     member x.elements = sequence
 
-    member x.encoding = 
-      match encoding with 
-      | IUPACDNA -> "http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html"
-      | IUPACPROTEIN -> "http://www.chem.qmul.ac.uk/iupac/AminoAcid/"
-      | SMILES -> "http://www.opensmiles.org/opensmiles.html"
-      | OtherEncoding(uri) -> uri
+    member x.encoding = encoding
 
 
 

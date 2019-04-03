@@ -26,20 +26,19 @@ let tests =
       let sbol = new SBOLDocument([seq])
 
       let xml = XmlSerializer.sbolToXml sbol
-      //let str = XmlSerializer.sbol_to_Xml_string xml
+      //let str = XmlSerializer.sbol_to_XmlString xml
 
       let rootXml = xml.FirstChild
       let (rootElem:XmlElement) = (downcast rootXml: XmlElement)
-      let seqNodeList = rootElem.GetElementsByTagName(QualifiedName.Sequence)
-      let (seq:XmlElement) = (downcast seqNodeList.Item(0):XmlElement)
-      let s = XmlSerializer.sequenceFromXml(seq)
-
-      let range = Range(uri,None,None,None,None,Location.Orientation.Inline,0,2)
-      let cut = Cut(uri,None,None,None,None,Location.Orientation.Inline,1)
-
-      let (l:Location list) = [range;cut]
+      let childXmlElems = XmlSerializer.getChildXmlElements rootElem
+      let seqNodeList = childXmlElems |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.Sequence))
+      //let seqNodeList = rootElem.GetElementsByTagName(QualifiedName.Sequence)
+      let (seq:XmlElement) = seqNodeList.Item(0)
+      let s = (XmlSerializer.sbolFromXML xml).sequences.Item(0)
+      
+      
       Expect.equal uri s.uri "Sequence URI doesn't match"
-      Expect.equal (Encoding.toURI encoding) s.encoding "Sequence Encoding doesn't match"
+      Expect.equal (encoding) s.encoding "Sequence Encoding doesn't match"
 
 
 
