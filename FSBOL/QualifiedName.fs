@@ -63,6 +63,7 @@ let frameworkProperty = "sbol:framework"
 let moduleProperty = "sbol:module"
 let modelProperty = "sbol:model"
 let builtProperty = "sbol:built"
+let operatorProperty = "sbol:operator"
 
 let Range = "sbol:Range"
 let SequenceAnnotation = "sbol:SequenceAnnotation"

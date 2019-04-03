@@ -3,6 +3,9 @@ module FSBOLTests.Tests
 open Expecto
 open FSBOL
 open FSBOL.Sequence
+open FSBOL.Location
+open FSBOL.Range
+open FSBOL.Cut
 open FSBOL.SBOLDocument
 open System.Xml
 open System.IO
@@ -31,8 +34,14 @@ let tests =
       let (seq:XmlElement) = (downcast seqNodeList.Item(0):XmlElement)
       let s = XmlSerializer.sequenceFromXml(seq)
 
+      let range = Range(uri,None,None,None,None,Location.Orientation.Inline,0,2)
+      let cut = Cut(uri,None,None,None,None,Location.Orientation.Inline,1)
+
+      let (l:Location list) = [range;cut]
       Expect.equal uri s.uri "Sequence URI doesn't match"
       Expect.equal (Encoding.toURI encoding) s.encoding "Sequence Encoding doesn't match"
+
+
 
 
   ]
