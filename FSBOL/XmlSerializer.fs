@@ -451,7 +451,8 @@ let combinatorialDerivationToXml (xdoc:XmlDocument) (x:CombinatorialDerivation) 
     | None -> ()
     
     let templateXml = xdoc.CreateElement(QualifiedName.templateProperty,Terms.sbolns)
-
+    templateXml.SetAttribute("resource",Terms.rdfns,x.template) |> ignore
+    xmlElement.AppendChild(templateXml) |> ignore
     
 
     x.variableComponents |> List.iter (fun vc ->
@@ -640,6 +641,17 @@ let sbolToXml (sbol:SBOLDocument) =
 
 
 (* From XML Methods *)
+
+let getChildXmlElements (xElem:XmlElement) = 
+     let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
+                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
+                               |> List.filter(fun item -> 
+                                    match item with 
+                                    | :? XmlElement -> true
+                                    | _ -> false)
+                               |> List.map (fun item -> (downcast item:XmlElement))    
+     childXmlElements
+
 let identifiersFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
     let uri = xElem.GetAttribute("about")
     
@@ -703,13 +715,7 @@ let topLevelFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) =
 
 
 let sequenceFromXml (xElem:XmlElement) = 
-        let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+        let childXmlElements = getChildXmlElements xElem
         let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
         
         
@@ -734,13 +740,7 @@ let sequenceFromXml (xElem:XmlElement) =
         x
 
 let attachmentFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
     
     let sourceList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sourceProperty)
@@ -777,13 +777,7 @@ let attachmentFromXml (xElem:XmlElement) =
     x
 
 let collectionFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
     
     let collectionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.memberProperty)
@@ -794,13 +788,7 @@ let collectionFromXml (xElem:XmlElement) =
     x    
 
 let mapsToFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
     
     let refinementList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.refinementProperty)
@@ -860,13 +848,7 @@ let componentInstanceFromXml (xElem:XmlElement) (childXmlElements:XmlElement lis
     (definition,access,mapsTos)
 
 let componentFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
     let (definition,access,mapsTos) = componentInstanceFromXml xElem childXmlElements
     let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
@@ -896,13 +878,7 @@ let locationFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) =
     (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation)
 
 let rangeFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
 
     let startList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.startIndexProperty)
@@ -924,13 +900,7 @@ let rangeFromXml (xElem:XmlElement) =
     x  
 
 let cutFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
 
     let atList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.atProperty)
@@ -946,13 +916,7 @@ let cutFromXml (xElem:XmlElement) =
     x  
 
 let genericLocationFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
 
     
@@ -961,13 +925,7 @@ let genericLocationFromXml (xElem:XmlElement) =
     x 
 
 let sequenceAnnotationFromXml (xElem:XmlElement) (components:Component list)= 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
 
     let locationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.locationProperty)
@@ -1014,17 +972,9 @@ let sequenceAnnotationFromXml (xElem:XmlElement) (components:Component list)=
     x 
 
 let sequenceConstraintFromXml (xElem:XmlElement) (components:Component list)= 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
 
-    let locationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.locationProperty)
-    
     let subjectList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.subjectProperty)
     let objectList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.objectProperty)
     let restrictionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.restrictionProperty)
@@ -1069,13 +1019,7 @@ let sequenceConstraintFromXml (xElem:XmlElement) (components:Component list)=
     x
 
 let componentDefinitionFromXml (xElem:XmlElement) (sequences:Sequence list)= 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
 
     let componentList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.componentProperty)
@@ -1130,14 +1074,8 @@ let componentDefinitionFromXml (xElem:XmlElement) (sequences:Sequence list)=
     x
 
 
-let variableComponentsFromXml (xElem:XmlElement) = 
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                               |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                               |> List.filter(fun item -> 
-                                    match item with 
-                                    | :? XmlElement -> true
-                                    | _ -> false)
-                               |> List.map (fun item -> (downcast item:XmlElement))
+let variableComponentFromXml (xElem:XmlElement) = 
+    let childXmlElements = getChildXmlElements xElem
     let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
 
     let operatorList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.operatorProperty)
@@ -1166,62 +1104,226 @@ let variableComponentsFromXml (xElem:XmlElement) =
     addAnnotations x uriAnnotations stringAnnotations description
     x
 
+let combinatorialDerivationFromXml (xElem:XmlElement) = 
+    let childXmlElements = getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+
+    let strategyList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.strategyProperty)
+    let templateList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.templateProperty)
+    let variableComponentList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.variableComponentProperty)
+    
+    let strategy = 
+        match strategyList with 
+        | [] -> None
+        | [s] -> Some(Strategy.fromURI (s.GetAttribute("resource")))                 
+        | _ -> failwith "Too many strategy properties in Combinatorial Derivation"
+    
+    let template = 
+        match templateList with 
+        | [] -> failwith "Template is a required property in Combinatorial Derivation"
+        | [s] -> s.GetAttribute("resource")                 
+        | _ -> failwith "Too many template properties in Combinatorial Derivation"
+    
+    let variableComponents = 
+        variableComponentList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                variableComponentFromXml elem
+            | _ -> failwith "Unexpected Xml Node encountered")
+
+
+    let x = CombinatorialDerivation(uri,name,displayId,version,persistentId,attachments,strategy,template,variableComponents)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let modelFromXml (xElem:XmlElement) = 
+    let childXmlElements =getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+
+    let sourceList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sourceProperty)
+    let languageList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.languageProperty)
+    let frameworkList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.frameworkProperty)
+    
+    let source = 
+        match sourceList with 
+        | [] -> failwith "Source is a required field in Model"
+        | [s] -> s.GetAttribute("resource")                 
+        | _ -> failwith "Too many source properties in Model"
+    
+    let language = 
+        match languageList with 
+        | [] -> failwith "Language is a required field in Model"
+        | [s] -> Language.fromURI (s.GetAttribute("resource"))                 
+        | _ -> failwith "Too many language properties in Model"
+    
+    let framework = 
+        match frameworkList with 
+        | [] -> failwith "Framework is a required field in Model"
+        | [s] -> Framework.fromURI (s.GetAttribute("resource"))                 
+        | _ -> failwith "Too many framework properties in Model"
+    
+
+    let x = Model(uri,name,displayId,version,persistentId,attachments,source,language,framework)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let moduleFromXml (xElem:XmlElement) = 
+    let childXmlElements = getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+
+    let definitionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.definitionProperty)
+    let mapsTosList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.mapsToProperty)
+    
+    let definition = 
+        match definitionList with 
+        | [] -> failwith "Definition is a required field in Module"
+        | [s] -> s.GetAttribute("resource")                 
+        | _ -> failwith "Too many definition properties in Module"
+
+    let mapsTos = 
+        mapsTosList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                mapsToFromXml elem
+            | _ -> failwith "Unexpected Xml Node encountered")
+
+
+    let x = Module(uri,name,displayId,version,persistentId,definition,mapsTos)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let functionalComponentFromXml (xElem:XmlElement) = 
+    let childXmlElements = getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (definition,access,mapsTos) = componentInstanceFromXml xElem childXmlElements
+    
+    let directionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.directionProperty)
+    
+    let direction = 
+        match directionList with 
+        | [] -> failwith "Direction is a required field in Functional Component"
+        | [s] -> Direction.fromURI (s.GetAttribute("resource"))                 
+        | _ -> failwith "Too many direction properties in Functional Component"
+
+    let x = FunctionalComponent(uri,name,displayId,version,persistentId,definition,access,mapsTos,direction)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let participationFromXml (xElem:XmlElement) (fclist:FunctionalComponent list)= 
+    let childXmlElements = getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    
+    let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
+    let participantList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.participantProperty)
+    
+    let roles = roleList |> List.map(fun x -> ParticipationRole.fromURI (x.GetAttribute("resource"))) 
+    
+    let participant = 
+        match participantList with 
+        | [] -> failwith "Participant is a required property in Participation"
+        | [s] -> 
+            let id = s.GetAttribute("resource")
+            let copt = 
+                fclist 
+                |> List.map (fun c -> (c.uri,c))
+                |> List.tryFind( fun (fid,fcomp) -> (fid = id))
+            match copt with 
+            | Some(k,v) -> v
+            | None -> failwith ("FunctionalComponent with id: " + id + " not defined." )            
+        | _ -> failwith "Too many participant properties in Participation"
+
+    
+    let x = Participation(uri,name,displayId,version,persistentId,roles,participant)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let interactionFromXml (xElem:XmlElement) (fclist:FunctionalComponent list)= 
+    let childXmlElements = getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    
+    let typeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.typeProperty)
+    let participationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.participationProperty)
+    
+    let types = typeList |> List.map(fun x -> InteractionType.fromURI (x.GetAttribute("resource"))) 
+    
+    let participations = 
+        participationList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                participationFromXml elem fclist
+            | _ -> failwith "Unexpected Xml Node encountered")
+
+    
+    let x = Interaction(uri,name,displayId,version,persistentId,types,participations)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
+let moduleDefinitionFromXml (xElem:XmlElement) (mlist:Model list)= 
+    let childXmlElements =getChildXmlElements xElem
+    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+
+    let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
+    let functionalComponentList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.functionalComponentProperty)
+    let interactionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.interactionProperty)
+    let moduleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.moduleProperty)
+    let modelList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.modelProperty)
+    
+    
+    
+    let roles = roleList |> List.map (fun x -> Role.fromURI (x.GetAttribute("resource")))
+
+    let functionalComponents = 
+        functionalComponentList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                functionalComponentFromXml elem 
+            | _ -> failwith "Unexpected Xml Node encountered")
+
+    let interactions = 
+        interactionList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                interactionFromXml elem functionalComponents
+            | _ -> failwith "Unexpected Xml Node encountered")
+    
+    let modules = 
+        moduleList |> List.map(fun x -> x.FirstChild)
+        |> List.map(fun item -> 
+            match item with 
+            | :? XmlElement -> 
+                let elem = (downcast item:XmlElement)
+                moduleFromXml elem 
+            | _ -> failwith "Unexpected Xml Node encountered")
+    
+
+
+    let models = 
+        modelList
+        |> List.map(fun x -> x.GetAttribute("resource"))
+        |> List.map(fun x -> 
+            match mlist |> List.tryFind(fun y -> y.uri = x) with  
+            | Some(seq) -> seq
+            | None -> failwith "Sequence not listed"
+            )
+    
+
+    let x = ModuleDefinition(uri,name,displayId,version,persistentId,attachments,roles,modules,interactions,functionalComponents,models)
+    addAnnotations x uriAnnotations stringAnnotations description
+    x
+
 (*
 
 
-let componentDefinitionFromXml (xElem:XmlElement) (seqList: (string*Sequence) list) = 
-    let id = xElem.GetAttribute("about")
-    let (name,displayId,version) = idFromXml(xElem)
-    let urlPrefix = id.Substring(0,id.IndexOf("/" + displayId + "/" + version))
-
-    let childXmlElements = ([0..(xElem.ChildNodes.Count-1)]
-                           |> List.map(fun index -> xElem.ChildNodes.Item(index)))
-                           |> List.filter(fun item -> 
-                                match item with 
-                                | :? XmlElement -> true
-                                | _ -> false)
-                            |> List.map (fun item -> 
-                                (downcast item:XmlElement))
-
-    let roleNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.role)
-    let typeNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.typeProperty)
-    let roleList = roleNodeList |> List.map (fun elem -> elem.GetAttribute("resource"))
-    let typeList = typeNodeList |> List.map (fun elem -> elem.GetAttribute("resource"))
-    
-    let seqNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sequenceProperty)
-
-    let sequences = match seqNodeList.Length with 
-                    | 0 -> []
-                    | _ ->  seqNodeList |> List.map(fun seqElem -> 
-                            let seqUri = seqElem.GetAttribute("resource")
-                            match (seqList |> List.tryFind (fun (uri,seq) -> uri = seqUri)) with 
-                            | None -> []
-                            | Some(uri,seqValue) -> [seqValue]
-                            ) |> List.reduce (fun a b -> a@b)
-
-    let componentNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.componentProperty)
-
-    let components = componentNodeList |> List.map (fun componentElem -> 
-                        let componentPropertyNode = componentElem.FirstChild
-                        match componentPropertyNode with 
-                        | :? XmlElement -> 
-                            let (componentPropertyElem:XmlElement) = (downcast componentPropertyNode:XmlElement)
-                            componentFromXml componentPropertyElem
-                        | _ -> failwith "Unexpected XML Node encountered")
-                        
-    
-    let componentMap = components |> List.map (fun x -> (x.uri,x))
-
-    let saNodeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sequenceAnnotationProperty)
-    let saList = saNodeList |> List.map ( fun saElem ->
-                        let saPropertyNode = saElem.FirstChild
-                        match saPropertyNode with 
-                        | :? XmlElement -> 
-                            let (saPropertyElem:XmlElement) = (downcast saPropertyNode:XmlElement)
-                            sequenceAnnotationFromXml saPropertyElem componentMap
-                        | _ -> failwith "Unexpected XML Node encountered")
-                 
-    new ComponentDefinition(name,urlPrefix,displayId,version,typeList,roleList,sequences,components,saList)
 
 let functionalComponentFromXml (xElem:XmlElement) = 
         let id = xElem.GetAttribute("about")
