@@ -3,6 +3,7 @@
 /// Basic Indentifiers in SBOL
 module FSBOL.Identifiers
 
+open FSBOL.Annotation
 open System.Collections.Generic
 
 [<AbstractClass>]
@@ -28,18 +29,7 @@ type Identifiers =
     /// Description
     member description:string option with get,set
     
-    member private uriAnnotations:Dictionary<string,string>
+    member annotations:Annotation list with get,set
     
-    member private stringAnnotations:Dictionary<string,string>
+    member getAnnotation: QName -> Annotation option
     
-    member addUriAnnotation: string * string -> unit
-    
-    member addStringAnnotation: string * string  -> unit
-    
-    member getUriAnnotation: string -> string option
-    
-    member getStringAnnotation: string -> string option
-    
-    member getUriAnnotations:(string*string) list
-    
-    member getStringAnnotations:(string*string) list

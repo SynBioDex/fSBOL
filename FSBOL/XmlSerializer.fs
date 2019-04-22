@@ -1,5 +1,6 @@
 ﻿module FSBOL.XmlSerializer
 
+open FSBOL.Annotation
 open FSBOL.Identifiers
 open FSBOL.Sequence
 open FSBOL.Attachment
@@ -46,68 +47,84 @@ let sbol_to_XmlString (xdoc:XmlDocument) =
 
 let identifiersToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (id:Identifiers)= 
     
-        xmlElement.SetAttribute("about",Terms.rdfns,id.uri) |> ignore
+    xmlElement.SetAttribute("about",Terms.rdfns,id.uri) |> ignore
+    
 
-        (* Version *)
-        match id.version with 
-        | Some(ver) -> 
-            let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
-            verXml.AppendChild(xdoc.CreateTextNode(ver)) |> ignore
-            xmlElement.AppendChild(verXml) |> ignore
-        | None -> ()
+    
+    (* Version *)
+    match id.version with 
+    | Some(ver) -> 
+        let verXml = xdoc.CreateElement(QualifiedName.version,Terms.sbolns)
+        verXml.AppendChild(xdoc.CreateTextNode(ver)) |> ignore
+        xmlElement.AppendChild(verXml) |> ignore
+    | None -> ()
+    
+    (* Name *)
+    match id.name with 
+    | Some(n) ->  
+        let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
+        nameXml.AppendChild(xdoc.CreateTextNode(n)) |> ignore
+        xmlElement.AppendChild(nameXml) |> ignore
+    | None -> ()
+    
+    
+    (* Display Id*)
+    match id.displayId with 
+    | Some(display) -> 
+        let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
+        disIdXml.AppendChild(xdoc.CreateTextNode(display)) |> ignore
+        xmlElement.AppendChild(disIdXml) |> ignore
+    | None -> ()
+    
+    
+    (* Persistent Identity*)
+    match id.persistentIdentity with 
+    | Some(pid) -> 
+        let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
+        perIdXml.SetAttribute("resource",Terms.rdfns,pid) |> ignore
+        xmlElement.AppendChild(perIdXml)  |> ignore
+    | None -> ()
+    
+    (* Description *)
+    match id.description with 
+    | Some(desc) -> 
+        let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
+        descriptionXml.AppendChild(xdoc.CreateTextNode(desc)) |> ignore
+        xmlElement.AppendChild(descriptionXml) |> ignore
+    | None -> ()
+    
+    let rec createAnnotation (xdoc:XmlDocument) (ann:Annotation) = 
         
-        (* Name *)
-        match id.name with 
-        | Some(n) ->  
-            let nameXml = xdoc.CreateElement(QualifiedName.name,Terms.dctermsns)
-            nameXml.AppendChild(xdoc.CreateTextNode(n)) |> ignore
-            xmlElement.AppendChild(nameXml) |> ignore
-        | None -> 
-
+        let create_qname_element (xdoc:XmlDocument) (qName:QName) = 
+            match qName with
+            | Name(n) -> xdoc.CreateElement(n)
+            | QualifiedName(qn,nsURI) -> xdoc.CreateElement(qn,nsURI)
+            | FullQName(prefix,lcname,nsURI) -> xdoc.CreateElement(prefix,lcname,nsURI)
+    
+        let annXml = create_qname_element xdoc ann.qName
         
-        (* Display Id*)
-        match id.displayId with 
-        | Some(display) -> 
-            let disIdXml = xdoc.CreateElement(QualifiedName.displayId,Terms.sbolns)
-            disIdXml.AppendChild(xdoc.CreateTextNode(display)) |> ignore
-            xmlElement.AppendChild(disIdXml) |> ignore
-        | None -> ()
+        match ann.value with 
+        | Literal (lit) -> annXml.AppendChild(xdoc.CreateTextNode(Literal.to_string lit)) |> ignore
+        | Uri (uri) -> annXml.SetAttribute("resource",Terms.rdfns,uri) |> ignore
+        | NestedAnnotation(na) -> 
+            let nestedElem = create_qname_element xdoc na.nestedQName
+            nestedElem.SetAttribute("resource",Terms.rdfns,na.nestedURI) |> ignore
+            let nestAnnList = na.annotations |> List.map (fun nann -> createAnnotation xdoc nann)
+            nestAnnList |> List.iter (fun y -> nestedElem.AppendChild(y) |> ignore)
+            annXml.AppendChild(nestedElem) |> ignore
+            
+        annXml
+    
+    match id.annotations with 
+    | [] -> ()
+    | _ -> 
+        let annList = id.annotations |> List.map (fun ann -> createAnnotation xdoc ann)
+        annList |> List.iter (fun y -> xmlElement.AppendChild(y) |> ignore)
 
-       
-        (* Persistent Identity*)
-        match id.persistentIdentity with 
-        | Some(pid) -> 
-            let perIdXml = xdoc.CreateElement(QualifiedName.persistentIdentity,Terms.sbolns)
-            perIdXml.SetAttribute("resource",Terms.rdfns,pid) |> ignore
-            xmlElement.AppendChild(perIdXml)  |> ignore
-        | None -> ()
+    
 
-        (* Description *)
-        match id.description with 
-        | Some(desc) -> 
-            let descriptionXml = xdoc.CreateElement(QualifiedName.description,Terms.dctermsns)
-            descriptionXml.AppendChild(xdoc.CreateTextNode(desc)) |> ignore
-            xmlElement.AppendChild(descriptionXml) |> ignore
-        | None -> ()
-
-
-        let addURIannotations (xmlElement:XmlElement) (xdoc:XmlDocument) ((u,ann):string*string) = 
-            let qn = "ns0:" + u 
-            let annXml = xdoc.CreateElement(qn,Terms.ns0)
-            annXml.SetAttribute("resource",Terms.ns0,ann) |> ignore
-            xmlElement.AppendChild(annXml) |> ignore
-        
-        id.getUriAnnotations |> List.iter(fun (u,ann) -> addURIannotations xmlElement xdoc (u,ann) |> ignore)
-
-        let addStringannotations (xmlElement:XmlElement) (xdoc:XmlDocument) ((u,ann):string*string) = 
-            let qn = "ns0:" + u 
-            let annXml = xdoc.CreateElement(qn,Terms.ns0)
-            annXml.AppendChild(xdoc.CreateTextNode(ann)) |> ignore
-            xmlElement.AppendChild(annXml) |> ignore
-        
-        id.getStringAnnotations |> List.iter(fun (u,ann) -> addStringannotations xmlElement xdoc (u,ann) |> ignore)
-
-
+    
+    
 let topLevelToXml (xmlElement:XmlElement) (xdoc:XmlDocument) (toplevel:TopLevel)= 
     identifiersToXml xmlElement xdoc toplevel
     let attachmentToXML (xmlElement:XmlElement) (xdoc:XmlDocument) (attachmenturi:string) = 
@@ -698,25 +715,26 @@ let identifiersFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) =
         | [] -> None
         | [desc] -> Some(desc.InnerText)
         | _ -> failwith "Too many Description fields."
-    (uri,name,displayId,version,persistentId,description,[],[])
+    (uri,name,displayId,version,persistentId,description,[])
 
-let addAnnotations (id:Identifiers) (uriAnnotations:(string*string) list) (stringAnnotations:(string*string) list) (d:string option)= 
-    uriAnnotations |> List.iter(fun (k,v) -> id.addUriAnnotation(k,v))
-    stringAnnotations |> List.iter(fun (k,v) -> id.addStringAnnotation(k,v))
+   
+
+let addAnnotations (id:Identifiers) (annotations:(Annotation) list) (d:string option)= 
+    id.annotations <- annotations
     id.description <- d
     
 let topLevelFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
     
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
     let attchXmlList = childXmlElements 
                        |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.attachmentProperty))
     let attachments = attchXmlList |> List.map (fun x -> x.GetAttribute("resource"))         
-    (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations)
+    (uri,name,displayId,version,persistentId,attachments,description,annotations)
 
 
 let sequenceFromXml (xElem:XmlElement) = 
         let childXmlElements = getChildXmlElements xElem
-        let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+        let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
         
         
 
@@ -736,12 +754,12 @@ let sequenceFromXml (xElem:XmlElement) =
             | _ -> failwith "Too many Encoding properties found"
 
         let x = new Sequence(uri,name,displayId,version,persistentId,attachments,elements,Encoding.fromURI(encoding))
-        addAnnotations x uriAnnotations stringAnnotations description
+        addAnnotations x annotations description
         x
 
 let attachmentFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
     
     let sourceList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sourceProperty)
     let formatList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.formatProperty)
@@ -773,23 +791,23 @@ let attachmentFromXml (xElem:XmlElement) =
         | _ -> failwith "Too many size fields encountered in Attachment" 
     
     let x = Attachment(uri,name,displayId,version,persistentId,attachments,source,format,size,hash)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let collectionFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
     
     let collectionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.memberProperty)
     let collection = collectionList |> List.map (fun x -> x.GetAttribute("resource"))
         
     let x = Collection(uri,name,displayId,version,persistentId,attachments,collection)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x    
 
 let mapsToFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
     
     let refinementList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.refinementProperty)
     let localList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.localProperty)
@@ -815,7 +833,7 @@ let mapsToFromXml (xElem:XmlElement) =
     
 
     let x = MapsTo(uri,name,displayId,version,persistentId,local,remote,refinement)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x  
 
 let componentInstanceFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
@@ -849,7 +867,7 @@ let componentInstanceFromXml (xElem:XmlElement) (childXmlElements:XmlElement lis
 
 let componentFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
     let (definition,access,mapsTos) = componentInstanceFromXml xElem childXmlElements
     let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
     let roleIntegrationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleIntegrationProperty)
@@ -860,11 +878,11 @@ let componentFromXml (xElem:XmlElement) =
         
 
     let x = Component(uri,name,displayId,version,persistentId,definition,access,mapsTos,roles,roleIntegrations)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x      
 
 let locationFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
 
     let orientationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.orientationProperty)
     
@@ -875,11 +893,11 @@ let locationFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) =
         | _ -> failwith "Too many orientation properties encountered in Location"
     
         
-    (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation)
+    (uri,name,displayId,version,persistentId,description,annotations,orientation)
 
 let rangeFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations,orientation) = locationFromXml xElem childXmlElements
 
     let startList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.startIndexProperty)
     let endList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.startIndexProperty)
@@ -896,12 +914,12 @@ let rangeFromXml (xElem:XmlElement) =
             | _ -> failwith "Too many endIndex properties encountered in Range"
     
     let x = Range(uri,name,displayId,version,persistentId,orientation,startIndex,endIndex)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x  
 
 let cutFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations,orientation) = locationFromXml xElem childXmlElements
 
     let atList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.atProperty)
     
@@ -912,21 +930,21 @@ let cutFromXml (xElem:XmlElement) =
             | _ -> failwith "Too many at properties encountered in Cut"
     
     let x = Cut(uri,name,displayId,version,persistentId,orientation,atIndex)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x  
 
 let genericLocationFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations,orientation) = locationFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations,orientation) = locationFromXml xElem childXmlElements
 
     
     let x = GenericLocation(uri,name,displayId,version,persistentId,orientation)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x 
 
 let sequenceAnnotationFromXml (xElem:XmlElement) (components:Component list)= 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
 
     let locationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.locationProperty)
     
@@ -968,12 +986,12 @@ let sequenceAnnotationFromXml (xElem:XmlElement) (components:Component list)=
         
     
     let x = SequenceAnnotation(uri,name,displayId,version,persistentId,comp,locations,roles)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x 
 
 let sequenceConstraintFromXml (xElem:XmlElement) (components:Component list)= 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
 
     let subjectList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.subjectProperty)
     let objectList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.objectProperty)
@@ -1015,12 +1033,12 @@ let sequenceConstraintFromXml (xElem:XmlElement) (components:Component list)=
 
            
     let x = SequenceConstraint(uri,name,displayId,version,persistentId,subject,object,restriction)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let componentDefinitionFromXml (xElem:XmlElement) (sequences:Sequence list)= 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
 
     let componentList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.componentProperty)
     let sequenceList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sequenceProperty)
@@ -1070,13 +1088,13 @@ let componentDefinitionFromXml (xElem:XmlElement) (sequences:Sequence list)=
     let types = typeList |> List.map (fun x -> ComponentDefinitionType.fromURI (x.GetAttribute("resource")))
 
     let x = ComponentDefinition(uri,name,displayId,version,persistentId,attachments,types,roles,sequences,components,sequenceAnnotations,sequenceConstraints)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 
 let variableComponentFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
 
     let operatorList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.operatorProperty)
     let variantList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.locationProperty)
@@ -1101,12 +1119,12 @@ let variableComponentFromXml (xElem:XmlElement) =
  
            
     let x = VariableComponent(uri,name,displayId,version,persistentId,operator,variants,variantCollections,variantDerivations,variable)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let combinatorialDerivationFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
 
     let strategyList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.strategyProperty)
     let templateList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.templateProperty)
@@ -1135,12 +1153,12 @@ let combinatorialDerivationFromXml (xElem:XmlElement) =
 
 
     let x = CombinatorialDerivation(uri,name,displayId,version,persistentId,attachments,strategy,template,variableComponents)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let modelFromXml (xElem:XmlElement) = 
     let childXmlElements =getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
 
     let sourceList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.sourceProperty)
     let languageList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.languageProperty)
@@ -1166,12 +1184,12 @@ let modelFromXml (xElem:XmlElement) =
     
 
     let x = Model(uri,name,displayId,version,persistentId,attachments,source,language,framework)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let moduleFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
 
     let definitionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.definitionProperty)
     let mapsTosList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.mapsToProperty)
@@ -1193,12 +1211,12 @@ let moduleFromXml (xElem:XmlElement) =
 
 
     let x = Module(uri,name,displayId,version,persistentId,definition,mapsTos)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let functionalComponentFromXml (xElem:XmlElement) = 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
     let (definition,access,mapsTos) = componentInstanceFromXml xElem childXmlElements
     
     let directionList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.directionProperty)
@@ -1210,12 +1228,12 @@ let functionalComponentFromXml (xElem:XmlElement) =
         | _ -> failwith "Too many direction properties in Functional Component"
 
     let x = FunctionalComponent(uri,name,displayId,version,persistentId,definition,access,mapsTos,direction)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let participationFromXml (xElem:XmlElement) (fclist:FunctionalComponent list)= 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
     
     let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
     let participantList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.participantProperty)
@@ -1238,12 +1256,12 @@ let participationFromXml (xElem:XmlElement) (fclist:FunctionalComponent list)=
 
     
     let x = Participation(uri,name,displayId,version,persistentId,roles,participant)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let interactionFromXml (xElem:XmlElement) (fclist:FunctionalComponent list)= 
     let childXmlElements = getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,description,uriAnnotations,stringAnnotations) = identifiersFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,description,annotations) = identifiersFromXml xElem childXmlElements
     
     let typeList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.typeProperty)
     let participationList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.participationProperty)
@@ -1261,12 +1279,12 @@ let interactionFromXml (xElem:XmlElement) (fclist:FunctionalComponent list)=
 
     
     let x = Interaction(uri,name,displayId,version,persistentId,types,participations)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let moduleDefinitionFromXml (xElem:XmlElement) (mlist:Model list)= 
     let childXmlElements =getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
 
     let roleList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.roleProperty)
     let functionalComponentList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.functionalComponentProperty)
@@ -1314,13 +1332,13 @@ let moduleDefinitionFromXml (xElem:XmlElement) (mlist:Model list)=
     
 
     let x = ModuleDefinition(uri,name,displayId,version,persistentId,attachments,roles,modules,interactions,functionalComponents,models)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 
 let implementationFromXml (xElem:XmlElement) (clist:ComponentDefinition list) (mlist:ModuleDefinition list) = 
     let childXmlElements =getChildXmlElements xElem
-    let (uri,name,displayId,version,persistentId,attachments,description,uriAnnotations,stringAnnotations) = topLevelFromXml xElem childXmlElements
+    let (uri,name,displayId,version,persistentId,attachments,description,annotations) = topLevelFromXml xElem childXmlElements
 
     let builtList = childXmlElements |> List.filter (fun elem -> elem.Name = QualifiedName.builtProperty)
     
@@ -1339,7 +1357,7 @@ let implementationFromXml (xElem:XmlElement) (clist:ComponentDefinition list) (m
         | _ -> failwith "Too many built properties found in Implementation"          
 
     let x = Implementation(uri,name,displayId,version,persistentId,attachments,built)
-    addAnnotations x uriAnnotations stringAnnotations description
+    addAnnotations x annotations description
     x
 
 let sbolFromXML (xdoc:XmlDocument) = 

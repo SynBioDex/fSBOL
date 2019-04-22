@@ -1,6 +1,7 @@
 ﻿[<JavaScript>]
 module FSBOL.JsonSerializer
 
+open FSBOL.Annotation
 open FSBOL.Identifiers
 open FSBOL.Sequence
 open FSBOL.Attachment
@@ -31,6 +32,34 @@ open FSBOL.SBOLDocument
 open System
 open System.Xml
 
+
+type rQName = {
+    qNameType:string;
+    name:string;
+    prefix:string;
+    nameSpaceUri:string
+} 
+with static member empty = {qNameType="";name="";prefix="";nameSpaceUri=""} 
+
+type rLiteral = {
+    literalType:string;
+    string:string; 
+    int:int;
+    int64:int64;
+    double:double; 
+    bool:bool    
+}
+with static member empty = {literalType="";string="";int=0;int64=(int64)0;double=0.0;bool=false}
+
+type rAnnotation = {
+    qName:rQName;
+    valueType:string;
+    literal:rLiteral;
+    uri:string;
+    nestedQName:rQName
+    annotations:rAnnotation list
+}
+
 /// Attachment in Record structure
 type rAttachment = {
     uri:string;
@@ -40,8 +69,7 @@ type rAttachment = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     source:string;
     format:string;
     size:int64;
@@ -57,8 +85,7 @@ type rCollection = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     members:string list
 }
 
@@ -71,8 +98,7 @@ type rSequence = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     elements:string;
     encoding:string
 }
@@ -85,8 +111,7 @@ type rMapsTo = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     local:string;
     remote:string;
     refinment:string
@@ -100,8 +125,7 @@ type rComponent = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     definition:string;
     access:string;
     mapsTos:rMapsTo list;
@@ -117,8 +141,7 @@ type rRange = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     orientation:string;
     startIndex:int
     endIndex:int
@@ -132,8 +155,7 @@ type rCut = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     orientation:string;
     at:int
 }
@@ -146,8 +168,7 @@ type rGenericLocation = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     orientation:string
 }
 
@@ -159,8 +180,7 @@ type rSequenceAnnotation = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     ranges:rRange list;
     cuts:rCut list;
     genericLocations:rGenericLocation list;
@@ -176,8 +196,7 @@ type rSequenceConstraint = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     subject:string;
     object:string;
     restriction:string
@@ -192,8 +211,7 @@ type rComponentDefinition = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     components:rComponent list;
     sequenceAnnotations:rSequenceAnnotation list;
     sequenceConstraints:rSequenceConstraint list;
@@ -210,8 +228,7 @@ type rVariableComponent = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     operator:string;
     variants:string list;
     variantCollections:string list;
@@ -228,8 +245,7 @@ type rCombinatorialDerivation = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     strategy:string;
     template:string;
     variableComponents:rVariableComponent list
@@ -244,8 +260,7 @@ type rModel = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     source:string;
     language:string;
     framework:string
@@ -259,8 +274,7 @@ type rModule = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     definition:string;
     mapsTos:rMapsTo list;
 }
@@ -274,8 +288,7 @@ type rFunctionalComponent = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     definition:string;
     access:string;
     mapsTos:rMapsTo list;
@@ -290,8 +303,7 @@ type rParticipation = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     roles:string list;
     participant:string
 }
@@ -304,8 +316,7 @@ type rInteraction = {
     displayId:string;
     persistentIdentity:string;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     types:string list;
     participations:rParticipation list
 }
@@ -319,8 +330,7 @@ type rModuleDefinition = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     roles:string list;
     functionalComponents:rFunctionalComponent list;
     interactions:rInteraction list;
@@ -337,8 +347,7 @@ type rImplementation = {
     persistentIdentity:string;
     attachments:string list;
     description:string;
-    uriAnnotations:(string*string) list;
-    stringAnnotations:(string*string) list;
+    annotations:rAnnotation list;
     built:string
 }
 
@@ -359,6 +368,49 @@ let stringOptionToString (str:string option) =
     | Some(x) -> x
     | None -> null
 
+let qNameToJson (x:QName):rQName = 
+    match x with 
+    | Name(n) -> 
+        {
+           qNameType = "Name";
+           name = n;
+           prefix = "";
+           nameSpaceUri = ""
+        }
+    | QualifiedName(name,nsuri) -> 
+        {
+           qNameType = "QualifiedName";
+           name = name;
+           prefix = "";
+           nameSpaceUri = nsuri
+        }
+    | FullQName(prefix,localname,nsuri) -> 
+        {
+           qNameType = "FullQName";
+           name = localname;
+           prefix = prefix;
+           nameSpaceUri = nsuri
+        }
+
+
+let literalToJson (x:Literal):rLiteral = 
+    match x with 
+    | String(s) -> {rLiteral.empty with literalType = "String";string = s}
+    | Integer(i) -> {rLiteral.empty with literalType = "Integer";int = i}
+    | Long(l) -> {rLiteral.empty with literalType = "Long";int64 = l}
+    | Double(d) ->  {rLiteral.empty with literalType = "Double";double = d}
+    | Boolean(b) -> {rLiteral.empty with literalType = "Boolean";bool = b}
+
+let rec annotationToJson (x:Annotation):rAnnotation = 
+    let QNamejson = qNameToJson x.qName
+    match x.value with 
+    | Literal(literal) -> {qName = QNamejson; valueType="Literal";literal = literalToJson literal; uri="";nestedQName=rQName.empty;annotations=[]}
+    | Uri(uri) -> {qName = QNamejson; valueType="Uri";literal = rLiteral.empty; uri=uri;nestedQName=rQName.empty;annotations=[]}
+    | NestedAnnotation(nann) -> 
+        let ranns = nann.annotations |> List.map (fun y -> annotationToJson y)
+        let rqname = qNameToJson nann.nestedQName
+        {qName = QNamejson; valueType="NestedAnnotation";literal = rLiteral.empty; uri="";nestedQName=rqname;annotations=ranns}
+
 /// Attachment in Record structure
 let attachmentToJson (x:Attachment) :rAttachment = 
     {
@@ -369,8 +421,7 @@ let attachmentToJson (x:Attachment) :rAttachment =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments=x.attachments;
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y)
         source=x.source;
         format=stringOptionToString x.format;
         size=
@@ -389,8 +440,7 @@ let collectionToJson (x:Collection) :rCollection =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments=x.attachments;
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         members=x.members
     }
 
@@ -404,8 +454,7 @@ let sequenceToJson (x:Sequence) :rSequence =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments=x.attachments;
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         elements= x.elements;
         encoding = Encoding.toURI x.encoding
     }    
@@ -418,8 +467,7 @@ let mapsToToJson (x:MapsTo) :rMapsTo =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         local = x.local;
         remote = x.remote;
         refinment = Refinement.toURI x.refinement
@@ -433,8 +481,7 @@ let componentToJson (x:Component) :rComponent =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         definition = x.definition;
         access = Access.toURI x.access;
         mapsTos = x.mapsTos |> List.map (fun x -> mapsToToJson x);
@@ -450,8 +497,7 @@ let rangeToJson (x:Range) :rRange =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         orientation = Orientation.toURI x.orientation;
         startIndex = x.startIndex
         endIndex = x.endIndex
@@ -465,8 +511,7 @@ let cutToJson (x:Cut) :rCut =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         orientation = Orientation.toURI x.orientation;
         at = x.at
     }
@@ -479,8 +524,7 @@ let genericLocationToJson (x:GenericLocation) :rGenericLocation =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         orientation = Orientation.toURI x.orientation;
     }
 
@@ -492,8 +536,7 @@ let sequenceAnnotationToJson (x:SequenceAnnotation) :rSequenceAnnotation =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         ranges = x.locations 
                  |> List.choose (fun elem ->
                     match elem with 
@@ -527,8 +570,7 @@ let sequenceConstraintToJson (x:SequenceConstraint):rSequenceConstraint =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         subject = x.subject.uri;
         object = x.object.uri;
         restriction = Restriction.toURI x.restriction
@@ -543,8 +585,7 @@ let componentDefinitionToJson (x:ComponentDefinition):rComponentDefinition =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments = x.attachments
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         components = x.components |> List.map (fun x -> componentToJson x);
         sequenceAnnotations = x.sequenceAnnotations |> List.map (fun x -> sequenceAnnotationToJson x);
         sequenceConstraints = x.sequenceConstraints |> List.map (fun x -> sequenceConstraintToJson x);
@@ -562,8 +603,7 @@ let variableComponentToJson (x:VariableComponent):rVariableComponent =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         operator = Operator.toURI x.operator;
         variants = x.variants;
         variantCollections = x.variantCollections;
@@ -580,8 +620,7 @@ let combinatorialDerivationToJson (x:CombinatorialDerivation) :rCombinatorialDer
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments = x.attachments
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         strategy = 
             match x.strategy with 
             | Some(y) -> Strategy.toURI y
@@ -600,8 +639,7 @@ let modelToJson (x:Model) :rModel =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments = x.attachments
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         source = x.source;
         language = Language.toURI x.language;
         framework = Framework.toURI x.framework
@@ -616,8 +654,7 @@ let moduleToJson (x:Module) :rModule =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         definition = x.definition;
         mapsTos = x.mapsTos |> List.map (fun x -> mapsToToJson x);
     }
@@ -632,8 +669,7 @@ let  functionalComponentToJson (x:FunctionalComponent):rFunctionalComponent =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         definition = x.definition;
         access = Access.toURI x.access;
         mapsTos = x.mapsTos |> List.map (fun x -> mapsToToJson x);
@@ -649,8 +685,7 @@ let participationToJson (x:Participation) :rParticipation =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         roles = x.roles |> List.map (fun y -> ParticipationRole.toURI y) ;
         participant = x.participant.uri
     }
@@ -664,8 +699,7 @@ let interactionToJson (x:Interaction) :rInteraction =
         displayId=stringOptionToString x.displayId; 
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         types = x.types |> List.map (fun y -> InteractionType.toURI y)
         participations = x.participations |> List.map (fun y -> participationToJson y)
     }
@@ -680,8 +714,7 @@ let moduleDefinitionToJson (x:ModuleDefinition):rModuleDefinition =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments = x.attachments
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         roles = x.roles |> List.map (fun y -> Role.toURI y);
         functionalComponents = x.functionalComponents |> List.map (fun y -> functionalComponentToJson y);
         interactions = x.interactions |> List.map (fun y -> interactionToJson y);
@@ -699,8 +732,7 @@ let implementationToJson (x:Implementation) :rImplementation =
         persistentIdentity=stringOptionToString x.persistentIdentity; 
         attachments = x.attachments
         description=stringOptionToString x.description;
-        uriAnnotations= x.getUriAnnotations;
-        stringAnnotations=x.getStringAnnotations;
+        annotations = x.annotations |> List.map (fun y -> annotationToJson y);
         built = 
             match x.built with 
             | Some(CD(y)) -> y.uri

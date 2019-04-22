@@ -10,6 +10,8 @@
     <Compile Include="Terms.fs" />
     <Compile Include="Role.fs" />
     <Compile Include="QualifiedName.fs" />
+    <Compile Include="Annotation.fsi" />
+    <Compile Include="Annotation.fs" />
     <Compile Include="Identifiers.fsi" />
     <Compile Include="Identifiers.fs" />
     <Compile Include="TopLevel.fsi" />
