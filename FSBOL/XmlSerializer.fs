@@ -675,6 +675,57 @@ let identifiersFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) =
     let displayIdXmlList = childXmlElements 
                            |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.displayId))
     
+    let annotationXmlList = childXmlElements
+                            |> List.filter (fun xmlElem -> (not (QualifiedName.isKnownQName (xmlElem.Name)) ))
+
+    let getQName (annXmlElem:XmlElement) = 
+        let localName = annXmlElem.LocalName
+        let prefix = annXmlElem.Prefix
+        let nsuri = annXmlElem.NamespaceURI
+        match prefix with 
+        | "" -> 
+            match nsuri with 
+            | "" -> Name (localName)
+            | _ -> QualifiedName(localName,nsuri)
+        | _ -> FullQName(prefix,localName,nsuri)
+    
+
+    let rec getAnnotation (annXmlElem:XmlElement) = 
+        let qname = getQName annXmlElem
+        let annotationValue = 
+            match annXmlElem.HasAttribute("resource") with 
+            | true -> AnnotationValue.Uri(annXmlElem.GetAttribute("resource"))
+            | false -> 
+                match annXmlElem.InnerText with 
+                | "" -> 
+                    let annotationChildren = getChildXmlElements annXmlElem
+                    match annotationChildren with 
+                    | [] -> failwith "Nested Annotation not found" 
+                    | [nannXmlElem] ->
+                        let nestedQName = getQName nannXmlElem
+                        let nestedURI = nannXmlElem.GetAttribute("resouce")
+                        let nestedChildNodes = getChildXmlElements nannXmlElem
+                        let nestedAnnotations = nestedChildNodes |> List.map (fun x -> getAnnotation x)
+                        AnnotationValue.NestedAnnotation(new NestedAnnotation(nestedQName,nestedURI,nestedAnnotations))
+                    | _ -> failwith "Too many nested annotations found. This is not right"
+
+                | _ -> AnnotationValue.Literal(Literal.from_string (annXmlElem.InnerText)) 
+                (*let annotationChildren = getChildXmlElements annXmlElem
+                match annotationChildren with 
+                | [] -> failwith "This annotation does not seem to have any value"
+                | [annXml] -> 
+                    match annXml.NodeType with 
+                    | XmlNodeType.Text ->
+                        AnnotationValue.Literal(Literal.from_string (annXml.InnerText)) 
+                    | _ -> 
+                        let nestAnn = getAnnotation annXml
+                        failwith "not implemented yet"
+                | _ -> failwith "not implemented yet"*)
+                
+        new Annotation(qname,annotationValue)
+    
+    let annotationList = annotationXmlList |> List.map (fun x -> getAnnotation x)
+    
     let displayId = 
         match displayIdXmlList with 
         | [] -> None 
@@ -715,7 +766,7 @@ let identifiersFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) =
         | [] -> None
         | [desc] -> Some(desc.InnerText)
         | _ -> failwith "Too many Description fields."
-    (uri,name,displayId,version,persistentId,description,[])
+    (uri,name,displayId,version,persistentId,description,annotationList)
 
    
 

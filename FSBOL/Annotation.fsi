@@ -9,6 +9,7 @@ type Literal =
     | Double of double 
     | Boolean of bool
 with static member to_string: Literal -> string
+     static member from_string: string -> Literal
 
 type QName = 
     | Name of string

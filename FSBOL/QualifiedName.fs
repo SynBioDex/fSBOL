@@ -89,4 +89,84 @@ let ModuleDefinition = "sbol:ModuleDefinition"
 
 
 
+let allKnownQNames = [id        ;
+    displayId                   ;
+    version                     ;
+    persistentIdentity          ;
+    name                        ;
+    description                 ;
+    atProperty                  ;
+    startIndexProperty          ;
+    endIndexProperty            ;
+    orientationProperty         ;
+    elementsProperty            ;
+    encodingProperty            ;
+    roleProperty                ;
+    roleIntegrationProperty     ;
+    typeProperty                ;
+    directionProperty           ;
+    participantProperty         ;
+    sourceProperty              ;
+    formatProperty              ;
+    sizeProperty                ;
+    hashProperty                ;
+    memberProperty              ;
+    attachmentProperty          ;
+    refinementProperty          ;
+    localProperty               ;
+    remoteProperty              ;
+    locationProperty            ;
+    sequenceAnnotationProperty  ;
+    sequenceConstraintsProperty ;
+    componentProperty           ;
+    sequenceProperty            ;
+    componentDefinitionProperty ;
+    functionalComponentProperty ;
+    participationProperty       ;
+    interactionProperty         ;
+    moduleDefinitionProperty    ;
+    mapsToProperty              ;
+    definitionProperty          ;
+    accessProperty              ;
+    subjectProperty             ;
+    objectProperty              ;
+    restrictionProperty         ;
+    variableProperty            ;
+    variantCollectionProperty   ;
+    variantDerivationProperty   ;
+    variantProperty             ;
+    strategyProperty            ;
+    templateProperty            ;
+    variableComponentProperty   ;
+    languageProperty            ;
+    frameworkProperty           ;
+    moduleProperty              ;
+    modelProperty               ;
+    builtProperty               ;
+    operatorProperty            ;                                
+    Range                       ;
+    SequenceAnnotation          ;
+    Component                   ;
+    Sequence                    ;
+    Attachment                  ;
+    Collection                  ;
+    MapsTo                      ;
+    Location                    ;
+    Cut                         ;
+    GenericLocation             ;
+    SequenceConstraint          ;
+    VariableComponent           ;
+    CombinatorialDerivation     ;
+    Model                       ;
+    Module                      ;
+    Implementation              ;
+    ComponentDefinition         ;
+    FunctionalComponent         ;
+    Participation               ;
+    Interaction                 ;
+    ModuleDefinition]
 
+
+
+let isKnownQName (x:string) = 
+    allKnownQNames |> List.contains x

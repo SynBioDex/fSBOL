@@ -25,7 +25,10 @@ let tests =
         
       let ann1 = new Annotation(Name("experience"),Uri("http://parts.igem.org/cgi/partsdb/part_info.cgi?part_name=BBa_J23119"))
       let ann2 = new Annotation(QualifiedName("pr:value","http://prexample.com"),Literal(Double(0.4)))
-      let nestedAnn1 = new NestedAnnotation(QualifiedName("pr:information","http://partsregistry.org/cd/BBa_J23119/information"),"http://partsregistry.org/cd/BBa_J23119/information",[])
+      
+      let ann4 = new Annotation(Name("experience4"),Uri("http://parts.igem.org/cgi/partsdb/part_info.cgi?part_name=BBa_J23120"))
+      
+      let nestedAnn1 = new NestedAnnotation(QualifiedName("pr:information","http://partsregistry.org/cd/BBa_J23119/information"),"http://partsregistry.org/cd/BBa_J23119/information",[ann4])
       let ann3 = new Annotation(FullQName("pr","info","http://prexample.com"),AnnotationValue.NestedAnnotation(nestedAnn1))
       seq.annotations <- [ann1;ann2;ann3]
 
