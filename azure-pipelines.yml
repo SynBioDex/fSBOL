@@ -11,8 +11,30 @@ pool:
 
 
 steps:
+- task: DotNetCoreInstaller@0
+  inputs:
+    version: '2.1.300' # replace this value with the version that you need for your project
+
+- script: dotnet restore FSBOL.sln
+
+- script: dotnet restore FSBOLJS.sln
+
+- script: dotnet restore FSBOLTests.sln
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: 'FSBOL.sln'
+    arguments: '--configuration Release'
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'FSBOLJS.sln'
+    arguments: '--configuration Release'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'FSBOLTests.sln'
+    arguments: '--configuration Release'
