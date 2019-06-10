@@ -10,3 +10,5 @@ nuget WebSharper.FSharp >= 4.0.189.96-rc
 nuget Expecto.VisualStudio.TestAdapter version_in_path: true
 nuget Expecto ~> 8.9.1
 nuget YoloDev.Expecto.TestSdk 0.7.0
+
+nuget System.ValueTuple >= 4.3.1

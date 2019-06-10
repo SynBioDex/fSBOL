@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>FSBOLJS</id>
+    <version>2.2.1.01</version>
+    <title>FSBOLJS</title>
+    <authors>Prashant Vaidyanathan, Colin Gravill, Filippo Polo, Andrew Phillips</authors>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/SynBioDex/fSBOL</projectUrl>
+    <repository type="git" url="https://github.com/SynBioDex/fSBOL"/>
+    <iconUrl>https://avatars2.githubusercontent.com/u/972220</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>An FSharp library that can be used while using W#</description>
+    <releaseNotes>Compliant with SBOL Version 2.2.1 (http://sbolstandard.org/wp-content/uploads/2016/06/SBOL-data-model-2.2.1.pdf)</releaseNotes>
+    <copyright>Copyright 2019</copyright>
+    <tags>FSharp F# SBOL SyntheticBiology DataModel W#</tags>
+    <dependencies>
+      <group targetFramework="net472">
+          <dependency id="WebSharper.FSharp" version="4.0.189.96-rc" />
+          <dependency id="FSharp.Core" version="4.3.4" />
+      </group>
+    </dependencies>
+    <references>
+      <reference file="WebSharper.Collections.dll" />
+      <reference file="WebSharper.Control.dll" />
+      <reference file="WebSharper.Core.dll" />
+      <reference file="WebSharper.Core.JavaScript.dll" />
+      <reference file="WebSharper.InterfaceGenerator.dll" />
+      <reference file="WebSharper.JQuery.dll" />
+      <reference file="WebSharper.JavaScript.dll" />
+      <reference file="WebSharper.Main.dll" />
+      <reference file="WebSharper.Sitelets.dll" />
+      <reference file="WebSharper.Web.dll" />  
+    </references>
+  </metadata>
+  <files>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Collections.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Control.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Core.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Core.JavaScript.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.InterfaceGenerator.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.JQuery.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.JavaScript.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Main.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Sitelets.dll" target="lib"/>
+    <file src="C:/work/sbol/fsbol/packages/Websharper/lib/netstandard2.0/WebSharper.Web.dll" target="lib"/>
+  </files>
+</package>

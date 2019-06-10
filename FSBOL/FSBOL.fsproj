@@ -4,6 +4,17 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Authors>Prashant Vaidyanathan, Colin Gravill, Filippo Polo, Andrew Phillips</Authors>
+    <Company>SynBioDex</Company>
+    <Version>2.2.1</Version>
+    <PackageProjectUrl>https://github.com/SynBioDex/fSBOL</PackageProjectUrl>
+    <PackageIconUrl>https://avatars3.githubusercontent.com/u/972220?s=200&amp;v=4</PackageIconUrl>
+    <RepositoryUrl>https://github.com/SynBioDex/fSBOL</RepositoryUrl>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>FSharp, F#, SBOL, SyntheticBiology</PackageTags>
+    <PackageReleaseNotes>Compliant with SBOL Version 2.2.1 (http://sbolstandard.org/wp-content/uploads/2016/06/SBOL-data-model-2.2.1.pdf)</PackageReleaseNotes>
+    <Copyright>Copyright 2019</Copyright>
+    <Description>FSharp library for the Synthetic Biology Open Language Data Model</Description>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="websharperstubs.fs" />
