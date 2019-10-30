@@ -1,12 +1,12 @@
-framework: net472
+framework: netstandard2.0
 redirects: on
 source https://api.nuget.org/v3/index.json
 
 nuget FsCheck >= 2.4
 nuget FSharp.Collections.ParallelSeq
-nuget FSharp.Core 4.3.4
+nuget FSharp.Core >= 4.3.4
 
-nuget WebSharper.FSharp >= 4.0.189.96-rc
+nuget WebSharper.FSharp >= 4.5.11.334
 nuget Expecto.VisualStudio.TestAdapter version_in_path: true
 nuget Expecto ~> 8.9.1
 nuget YoloDev.Expecto.TestSdk 0.7.0
