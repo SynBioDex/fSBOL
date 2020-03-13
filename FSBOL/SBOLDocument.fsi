@@ -1,5 +1,6 @@
 ﻿[<JavaScript>]
 module FSBOL.SBOLDocument
+open FSBOL.Annotation
 open FSBOL.ComponentDefinition
 open FSBOL.ModuleDefinition
 open FSBOL.Sequence
@@ -11,7 +12,7 @@ open FSBOL.CombinatorialDerivation
 open FSBOL.TopLevel
 
 type SBOLDocument = 
-    new: collection:TopLevel list -> SBOLDocument
+    new: collection:TopLevel list * annotations:Annotation list-> SBOLDocument
 
     member attachments:Attachment list
 

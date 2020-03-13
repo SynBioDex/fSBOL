@@ -11,6 +11,8 @@ NUGET
     FSharp.Collections.ParallelSeq (1.1.2)
       FSharp.Core (>= 4.3.4)
     FSharp.Core (4.3.4)
+    FSharp.Data (3.3.3)
+      FSharp.Core (>= 4.3.4)
     Microsoft.NETCore.Platforms (2.2.2)
     Microsoft.NETCore.Targets (2.1)
     Mono.Cecil (0.10.3)

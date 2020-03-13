@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Include="Sample.fs" />
+    <Compile Include="RoundTripTest.fs" />
     <Compile Include="Main.fs" />
 	<None Include="paket.references" />
   </ItemGroup>
@@ -15,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Expecto" Version="8.*" />
     <PackageReference Include="FSharp.Core" Version="4.*" />
+    <PackageReference Include="FSharp.Data" Version="3.3.3" />
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.*" />
   </ItemGroup>

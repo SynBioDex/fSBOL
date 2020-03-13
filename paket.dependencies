@@ -5,6 +5,7 @@ source https://api.nuget.org/v3/index.json
 nuget FsCheck >= 2.4
 nuget FSharp.Collections.ParallelSeq
 nuget FSharp.Core >= 4.3.4
+nuget FSharp.Data >= 3.3.3
 
 nuget WebSharper.FSharp >= 4.5.11.334
 nuget Expecto.VisualStudio.TestAdapter version_in_path: true

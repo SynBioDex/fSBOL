@@ -670,7 +670,7 @@ let getChildXmlElements (xElem:XmlElement) =
      childXmlElements
 
 let identifiersFromXml (xElem:XmlElement) (childXmlElements:XmlElement list) = 
-    let uri = xElem.GetAttribute("about")
+    let uri = xElem.GetAttribute("about",Terms.rdfns)
     
     let displayIdXmlList = childXmlElements 
                            |> List.filter(fun xmlElem -> (xmlElem.Name = QualifiedName.displayId))
@@ -801,7 +801,7 @@ let sequenceFromXml (xElem:XmlElement) =
         let encoding = 
             match encodingList with 
             | [] -> failwith "Encoding is a required field in a Sequence"
-            | [e] -> e.GetAttribute("resource")
+            | [e] -> e.GetAttribute("resource",Terms.rdfns)
             | _ -> failwith "Too many Encoding properties found"
 
         let x = new Sequence(uri,name,displayId,version,persistentId,attachments,elements,Encoding.fromURI(encoding))
@@ -1412,11 +1412,16 @@ let implementationFromXml (xElem:XmlElement) (clist:ComponentDefinition list) (m
     x
 
 let sbolFromXML (xdoc:XmlDocument) = 
-    let rootXml = xdoc.FirstChild
+    let rootXmlOpt = 
+        [0..xdoc.ChildNodes.Count-1] 
+        |> List.map (fun i -> xdoc.ChildNodes.Item(i))    
+        |> List.tryFind (fun c -> match c with | :? XmlElement -> true | _ -> false)
+    let rootXml = match rootXmlOpt with | Some(x) -> x | None -> failwith "Can't find a single XmlElement. Error."
     match rootXml with 
     | :? XmlElement -> 
         let (rootElem:XmlElement) = (downcast rootXml: XmlElement)
-        let childXmlElements =getChildXmlElements rootElem
+        let attributes = rootElem.Attributes
+        let childXmlElements = getChildXmlElements rootElem
         let sequences = 
             childXmlElements 
             |> List.filter (fun elem -> elem.Name = QualifiedName.Sequence)
@@ -1465,5 +1470,5 @@ let sbolFromXML (xdoc:XmlDocument) =
             @ (combinatorialDerivations |> List.map (fun x -> x :> TopLevel))
             @ (implementations |> List.map (fun x -> x :> TopLevel))
             
-        SBOLDocument(collection)
+        SBOLDocument(collection,[])
     | _ -> failwith "Unknown XML format"

@@ -1,5 +1,6 @@
 ﻿[<JavaScript>]
 module FSBOL.SBOLDocument
+open FSBOL.Annotation
 open FSBOL.ComponentDefinition
 open FSBOL.ModuleDefinition
 open FSBOL.Sequence
@@ -11,7 +12,7 @@ open FSBOL.CombinatorialDerivation
 open FSBOL.TopLevel
 
 
-type SBOLDocument (collection:TopLevel list) = 
+type SBOLDocument (collection:TopLevel list,annotations:Annotation list) = 
     
     let cdlist  = collection 
                   |> List.choose(fun elem -> 
@@ -112,3 +113,5 @@ type SBOLDocument (collection:TopLevel list) =
     
     (* *)
     member sbol.collections = collectionList
+
+    member sbol.annotations = annotations

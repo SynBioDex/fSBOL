@@ -32,7 +32,7 @@ let tests =
       let ann3 = new Annotation(FullQName("pr","info","http://prexample.com"),AnnotationValue.NestedAnnotation(nestedAnn1))
       seq.annotations <- [ann1;ann2;ann3]
 
-      let sbol = new SBOLDocument([seq])
+      let sbol = new SBOLDocument([seq],[])
 
       let xml = XmlSerializer.sbolToXml sbol
       let str = XmlSerializer.sbol_to_XmlString xml
